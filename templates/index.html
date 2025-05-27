@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EUFT</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"> <!-- ADICIONADO -->
+</head>
+<body>
+
+<nav class="navbar navbar-light bg-light">
+    <span id="euft-title" class="navbar-brand mx-auto">EUFT - Efetividade na Utilização da Frota</span>
+</nav>
+
+<div class="container mt-5">
+    <!-- Selecionar a Região -->
+    <div class="card central-card mb-4 shadow rounded-3">
+        <div class="card-header text-center bg-primary text-white">
+            <h4 class="mb-0">EUFT Diário</h4>
+        </div>
+        <div class="card-body text-center">
+            <form method="POST" enctype="multipart/form-data" class="d-flex flex-column align-items-center">
+                <div class="mb-3 w-50 position-relative">
+                    
+                    <select name="region" class="form-select form-select-lg ps-5 text-center rounded-pill border-primary" required>
+                        <option value="">Selecione sua GERAE</option>
+                        <option value="Região 7">GERAE 06</option> <!-- Corrigido -->
+                        <option value="Região 2">GERAE 02</option>
+                    </select>
+                </div>
+                <div class="col-md-6 col-12 mb-3">
+                    
+                    <input type="file" name="file1" class="form-control form-control-lg ps-5 text-center rounded-pill border-primary" required>
+                    <input type="file" name="file2" class="form-control form-control-lg ps-5 text-center rounded-pill border-primary" required>
+
+                </div>
+                <div class="col-md-6 col-12 mb-3">
+                    <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill">Carregar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% if resultados or erros or (grafico_labels and grafico_dados) or veiculos_sem_saida %}
+<div class="d-flex justify-content-center flex-wrap gap-2 mt-4">
+    {% if resultados %}
+        <button id="showResults" class="btn btn-outline-info mx-1 mb-2">Mostrar Resultados</button>
+    {% endif %}
+    {% if erros %}
+        <button id="showErrors" class="btn btn-outline-danger mx-1 mb-2">Mostrar Erros</button>
+    {% endif %}
+    {% if grafico_labels and grafico_dados %}
+        <button id="showGrafico" class="btn btn-outline-warning mx-1 mb-2">Mostrar Gráfico</button>
+    {% endif %}
+    {% if veiculos_sem_saida %}
+        <button id="showVeiculosSemSaida" class="btn btn-outline-secondary mx-1 mb-2">Veículos Sem Saída</button>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- Resultados -->
+{% if resultados %}
+<div id="results" class="card table-card mt-3" style="display: none;">
+    <div class="card-header text-center">
+        <h4>Resultados</h4>
+    </div>
+    <div class="card-body">
+        <div class="responsive-table-container">
+            <table id="resultsTable" class="table table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Placa</th>
+                        <th>Lotação Patrimonial</th>
+                        <th>Lançamentos Corretos</th>
+                        <th>Lançamentos Totais</th>
+                        <th>Adicional</th>
+                        <th>EUFT</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{ resultados|safe }}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Resultados por Unidade -->
+{% if resultados_por_unidade %}
+<div id="unidadeResults" class="card table-card mt-3">
+    <div class="card-header text-center">
+    </div>
+    <div class="card-body">
+        <div class="responsive-table-container">
+            <table id="unidadeResultsTable" class="table table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Lotação Patrimonial</th>
+                        <th>Lançamentos Corretos</th>
+                        <th>Lançamentos Totais</th>
+                        <th>Adicional</th>
+                        <th>EUFT Médio</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{ resultados_por_unidade|safe }}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Erros -->
+{% if erros %}
+<div id="botoesDownload" style="display: none;" class="mt-3 text-center">
+    <a href="/download/erros_csv" class="btn btn-outline-success me-2" target="_blank">Baixar CSV</a>
+    <a href="/download/erros_excel" class="btn btn-outline-primary" target="_blank">Baixar Excel</a>
+</div>
+<div id="errors" class="card table-card mt-3" style="display:none;">
+    <div class="card-header text-center">
+        <h4>Inconsistências</h4>
+    </div>
+    <div class="card-body">
+        <div class="responsive-table-container">
+            <table id="errorsTable" class="table table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Placa</th>
+                        <th>Data Partida</th>
+                        <th>Distância Percorrida</th>
+                        <th>Lotação Patrimonial</th>
+                        <th>Unidade em Operação</th>
+                        <th>Motivo Erro</th>
+                        <th>Tempo Utilização</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{ erros|safe }}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Veículos Sem Saída -->
+{% if veiculos_sem_saida %}
+<div id="veiculosSemSaida" class="card table-card mt-3" style="display: none;">
+    <div class="card-header text-center">
+        <h4>Veículos Sem Saída</h4>
+    </div>
+    <div class="card-body">
+        <div class="responsive-table-container">
+            <table id="veiculosSemSaidaTable" class="table table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Placa</th>
+                        <th>Lotação Patrimonial</th>
+                        <th>Unidade em Operação</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{ veiculos_sem_saida|safe }}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Gráfico -->
+{% if grafico_labels and grafico_dados %}
+<div id="graficoContainer" class="card table-card mt-3" style="display: none;">
+    <div class="card-header text-center">
+        <h4>Distribuição dos Erros por Unidade</h4>
+    </div>
+    <div class="card-body">
+        <canvas id="graficoImpacto" height="300"></canvas>
+    </div>
+</div>
+{% endif %}
+</div>
+
+<footer class="footer mt-auto py-3 bg-light">
+    <div class="container">
+        <span class="text-muted">© DFS 2025. Todos os direitos reservados.</span>
+    </div>
+</footer>
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script> 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+
+{% if grafico_labels and grafico_dados %}
+<script id="grafico-data" type="application/json">
+{
+    "labels": {{ grafico_labels|safe }},
+    "dados": {{ grafico_dados|safe }}
+}
+</script>
+{% endif %}
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        let resultsTableInitialized = false;
+        let errorsTableInitialized = false;
+        let semSaidaTableInitialized = false;
+        let unidadeTableInitialized = false;
+        let chartInstance = null;
+
+        function toggleVisibility(showId) {
+            const ids = ['results', 'errors', 'graficoContainer', 'veiculosSemSaida'];
+            ids.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = (id === showId && el.style.display !== 'block') ? 'block' : 'none';
+            });
+
+            const botoesDownload = document.getElementById('botoesDownload');
+            if (showId === 'errors' && document.getElementById('errors').style.display === 'block') {
+                botoesDownload.style.display = 'block';
+            } else if (botoesDownload) {
+                botoesDownload.style.display = 'none';
+            }
+        }
+
+        const btnShowResults = document.getElementById('showResults');
+        const btnShowErrors = document.getElementById('showErrors');
+        const btnShowGrafico = document.getElementById('showGrafico');
+        const btnShowVeiculosSemSaida = document.getElementById('showVeiculosSemSaida');
+        
+        if (btnShowResults) {
+            btnShowResults.addEventListener('click', () => {
+                toggleVisibility('results');
+
+                if (!resultsTableInitialized && $('#resultsTable').length) {
+                    $('#resultsTable').DataTable({
+                        language: {
+                            url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json'
+                        },
+                        paging: true,
+                        searching: true,
+                        ordering: true,
+                        order: [[1, 'asc']] // Ordena por Placa
+                    });
+                    resultsTableInitialized = true;
+                }
+
+                if (!unidadeTableInitialized && $('#unidadeResultsTable').length) {
+                    console.log('Inicializando unidadeResultsTable');
+                    $('#unidadeResultsTable').DataTable({
+                        language: {
+                            url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json'
+                        },
+                        paging: true,
+                        searching: true,
+                        ordering: true,
+                        order: [[1, 'asc']] // Ordena por Lotação Patrimonial
+                    });
+                    unidadeTableInitialized = true;
+                }
+            });
+        }
+        
+        if (btnShowErrors) {
+            btnShowErrors.addEventListener('click', () => {
+                toggleVisibility('errors');
+                if (!errorsTableInitialized) {
+                    $('#errorsTable').DataTable();
+                    errorsTableInitialized = true;
+                }
+            });
+        }
+
+        if (btnShowVeiculosSemSaida) {
+            btnShowVeiculosSemSaida.addEventListener('click', () => {
+                toggleVisibility('veiculosSemSaida');
+                if (!semSaidaTableInitialized) {
+                    $('#veiculosSemSaidaTable').DataTable();
+                    semSaidaTableInitialized = true;
+                }
+            });
+        }
+
+        if (btnShowGrafico) {
+            btnShowGrafico.addEventListener('click', () => {
+                toggleVisibility('graficoContainer');
+                if (!chartInstance) {
+                    const graficoData = JSON.parse(document.getElementById('grafico-data').textContent);
+                    const ctx = document.getElementById('graficoImpacto').getContext('2d');
+                    chartInstance = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: graficoData.labels,
+                            datasets: [{
+                                label: 'Total de Erros',
+                                data: graficoData.dados,
+                                backgroundColor: graficoData.dados.map(value =>
+                                    value > 10 ? 'rgba(220, 53, 69, 0.7)' : 'rgba(255, 193, 7, 0.7)'
+                                ),
+                                borderColor: graficoData.dados.map(value =>
+                                    value > 10 ? 'rgba(220, 53, 69, 1)' : 'rgba(255, 193, 7, 1)'
+                                ),
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            animation: {
+                                duration: 2000,
+                                easing: 'easeInOutElastic'
+                            },
+                            hover: {
+                                mode: null,
+                            },
+                            elements: {
+                                bar: {
+                                    hoverBackgroundColor: null,
+                                    hoverBorderColor: null
+                                }
+                            },
+                            onHover: function (event, chartElement) {
+                                if (chartElement.length > 0) {
+                                    event.native.target.style.cursor = 'pointer';
+                                } else {
+                                    event.native.target.style.cursor = 'default';
+                                }
+                            },
+                            responsiveAnimationDuration: 600,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: { color: '#000' }
+                                },
+                                x: {
+                                    ticks: { color: '#000' }
+                                }
+                            },
+                            plugins: {
+                                datalabels: {
+                                    anchor: 'end',
+                                    align: 'top',
+                                    color: '#000',
+                                    font: {
+                                        weight: 'bold',
+                                        size: 12
+                                    }
+                                },
+                                tooltip: {
+                                    enabled: true,
+                                    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                                    titleColor: '#ffcc00',
+                                    bodyColor: '#ffffff',
+                                    titleFont: { weight: 'bold', size: 16 },
+                                    bodyFont: { size: 14 },
+                                    cornerRadius: 8,
+                                    caretSize: 8
+                                },
+                                zoom: {
+                                    zoom: {
+                                        wheel: { enabled: true },
+                                        pinch: { enabled: true },
+                                        mode: 'x'
+                                    },
+                                    pan: {
+                                        enabled: true,
+                                        mode: 'x'
+                                    }
+                                }
+                            }
+                        },
+                        plugins: [ChartDataLabels]
+                    });
+                }
+            });
+        }
+    });
+</script>
+
+
+</body>
+</html>
