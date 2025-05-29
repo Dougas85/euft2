@@ -59,6 +59,10 @@
     {% if veiculos_sem_saida %}
         <button id="showVeiculosSemSaida" class="btn btn-outline-secondary mx-1 mb-2">Veículos Sem Saída</button>
     {% endif %}
+    {% if veiculos_sem_retorno %}
+    <button id="showVeiculosSemRetorno" class="btn btn-outline-warning mx-1 mb-2">Veículos Sem Retorno</button>
+    {% endif %}
+
 </div>
 {% endif %}
 
@@ -179,6 +183,39 @@
 </div>
 {% endif %}
 
+{% if veiculos_sem_retorno %}
+<div id="veiculosSemRetorno" class="card table-card mt-3" style="display: none;">
+    <div class="card-header text-center">
+        <h4>Veículos Sem Retorno</h4>
+    </div>
+    <div class="card-body">
+        <div class="responsive-table-container">
+            <table class="table table-bordered table-striped">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Placa</th>
+                        <th>Data Partida</th>
+                        <th>Matrícula Condutor</th>
+                        <th>Unidade em Operação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in veiculos_sem_retorno %}
+                    <tr>
+                        <td>{{ item['Placa'] }}</td>
+                        <td>{{ item['Data Partida'].strftime('%d/%m/%Y') if item['Data Partida'] else '' }}</td>
+                        <td>{{ item['Matrícula Condutor'] }}</td>
+                        <td>{{ item['Unidade em Operação'] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+
 <!-- Gráfico -->
 {% if grafico_labels and grafico_dados %}
 <div id="graficoContainer" class="card table-card mt-3" style="display: none;">
@@ -216,182 +253,185 @@
 {% endif %}
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        let resultsTableInitialized = false;
-        let errorsTableInitialized = false;
-        let semSaidaTableInitialized = false;
-        let unidadeTableInitialized = false;
-        let chartInstance = null;
+document.addEventListener('DOMContentLoaded', function () {
+    let resultsTableInitialized = false;
+    let errorsTableInitialized = false;
+    let semSaidaTableInitialized = false;
+    let unidadeTableInitialized = false;
+    let veiculosSemRetornoTableInitialized = false; // NOVO
+    let chartInstance = null;
 
-        function toggleVisibility(showId) {
-            const ids = ['results', 'errors', 'graficoContainer', 'veiculosSemSaida'];
-            ids.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.style.display = (id === showId && el.style.display !== 'block') ? 'block' : 'none';
-            });
+    function toggleVisibility(showId) {
+        const ids = ['results', 'errors', 'graficoContainer', 'veiculosSemSaida', 'veiculosSemRetorno']; // ADICIONADO 'veiculosSemRetorno'
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = (id === showId && el.style.display !== 'block') ? 'block' : 'none';
+        });
 
-            const botoesDownload = document.getElementById('botoesDownload');
-            if (showId === 'errors' && document.getElementById('errors').style.display === 'block') {
-                botoesDownload.style.display = 'block';
-            } else if (botoesDownload) {
-                botoesDownload.style.display = 'none';
+        const botoesDownload = document.getElementById('botoesDownload');
+        if (showId === 'errors' && document.getElementById('errors').style.display === 'block') {
+            botoesDownload.style.display = 'block';
+        } else if (botoesDownload) {
+            botoesDownload.style.display = 'none';
+        }
+    }
+
+    const btnShowResults = document.getElementById('showResults');
+    const btnShowErrors = document.getElementById('showErrors');
+    const btnShowGrafico = document.getElementById('showGrafico');
+    const btnShowVeiculosSemSaida = document.getElementById('showVeiculosSemSaida');
+    const btnShowVeiculosSemRetorno = document.getElementById('showVeiculosSemRetorno'); // NOVO
+    function habilitarBotaoPorHorario() {
+        const botao = document.getElementById("showVeiculosSemRetorno");
+        const agora = new Date();
+        const horas = agora.getHours();
+        const minutos = agora.getMinutes();
+        const horaDecimal = horas + minutos / 60;
+
+        if (horaDecimal >= 17 && horaDecimal <= 21) {
+            botao.disabled = false;
+            botao.style.opacity = "1";
+            botao.style.pointerEvents = "auto";
+        } else {
+            botao.disabled = true;
+            botao.style.opacity = "0.6";
+            botao.style.pointerEvents = "none";
+        }
+    }
+
+    habilitarBotaoPorHorario();
+    setInterval(habilitarBotaoPorHorario, 60000);
+
+    
+
+    if (btnShowResults) {
+        btnShowResults.addEventListener('click', () => {
+            toggleVisibility('results');
+
+            if (!resultsTableInitialized && $('#resultsTable').length) {
+                $('#resultsTable').DataTable({
+                    language: {
+                        url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json'
+                    },
+                    paging: true,
+                    searching: true,
+                    ordering: true,
+                    order: [[1, 'asc']]
+                });
+                resultsTableInitialized = true;
             }
-        }
 
-        const btnShowResults = document.getElementById('showResults');
-        const btnShowErrors = document.getElementById('showErrors');
-        const btnShowGrafico = document.getElementById('showGrafico');
-        const btnShowVeiculosSemSaida = document.getElementById('showVeiculosSemSaida');
-        
-        if (btnShowResults) {
-            btnShowResults.addEventListener('click', () => {
-                toggleVisibility('results');
+            if (!unidadeTableInitialized && $('#unidadeResultsTable').length) {
+                $('#unidadeResultsTable').DataTable({
+                    language: {
+                        url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json'
+                    },
+                    paging: true,
+                    searching: true,
+                    ordering: true,
+                    order: [[1, 'asc']]
+                });
+                unidadeTableInitialized = true;
+            }
+        });
+    }
 
-                if (!resultsTableInitialized && $('#resultsTable').length) {
-                    $('#resultsTable').DataTable({
-                        language: {
-                            url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json'
-                        },
-                        paging: true,
-                        searching: true,
-                        ordering: true,
-                        order: [[1, 'asc']] // Ordena por Placa
-                    });
-                    resultsTableInitialized = true;
-                }
+    if (btnShowErrors) {
+        btnShowErrors.addEventListener('click', () => {
+            toggleVisibility('errors');
+            if (!errorsTableInitialized) {
+                $('#errorsTable').DataTable({
+                    language: {
+                        url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json'
+                    }
+                });
+                errorsTableInitialized = true;
+            }
+        });
+    }
 
-                if (!unidadeTableInitialized && $('#unidadeResultsTable').length) {
-                    console.log('Inicializando unidadeResultsTable');
-                    $('#unidadeResultsTable').DataTable({
-                        language: {
-                            url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json'
-                        },
-                        paging: true,
-                        searching: true,
-                        ordering: true,
-                        order: [[1, 'asc']] // Ordena por Lotação Patrimonial
-                    });
-                    unidadeTableInitialized = true;
-                }
-            });
-        }
-        
-        if (btnShowErrors) {
-            btnShowErrors.addEventListener('click', () => {
-                toggleVisibility('errors');
-                if (!errorsTableInitialized) {
-                    $('#errorsTable').DataTable();
-                    errorsTableInitialized = true;
-                }
-            });
-        }
+    if (btnShowVeiculosSemSaida) {
+        btnShowVeiculosSemSaida.addEventListener('click', () => {
+            toggleVisibility('veiculosSemSaida');
+            if (!semSaidaTableInitialized) {
+                $('#veiculosSemSaidaTable').DataTable({
+                    language: {
+                        url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json'
+                    }
+                });
+                semSaidaTableInitialized = true;
+            }
+        });
+    }
 
-        if (btnShowVeiculosSemSaida) {
-            btnShowVeiculosSemSaida.addEventListener('click', () => {
-                toggleVisibility('veiculosSemSaida');
-                if (!semSaidaTableInitialized) {
-                    $('#veiculosSemSaidaTable').DataTable();
-                    semSaidaTableInitialized = true;
-                }
-            });
-        }
+    if (btnShowVeiculosSemRetorno) {
+        btnShowVeiculosSemRetorno.addEventListener('click', () => {
+            toggleVisibility('veiculosSemRetorno');
+            if (!veiculosSemRetornoTableInitialized) {
+                $('#veiculosSemRetorno table').DataTable({
+                    language: {
+                        url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json'
+                    }
+                });
+                veiculosSemRetornoTableInitialized = true;
+            }
+        });
+    }
 
-        if (btnShowGrafico) {
-            btnShowGrafico.addEventListener('click', () => {
-                toggleVisibility('graficoContainer');
-                if (!chartInstance) {
-                    const graficoData = JSON.parse(document.getElementById('grafico-data').textContent);
-                    const ctx = document.getElementById('graficoImpacto').getContext('2d');
-                    chartInstance = new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-                            labels: graficoData.labels,
-                            datasets: [{
-                                label: 'Total de Erros',
-                                data: graficoData.dados,
-                                backgroundColor: graficoData.dados.map(value =>
-                                    value > 10 ? 'rgba(220, 53, 69, 0.7)' : 'rgba(255, 193, 7, 0.7)'
-                                ),
-                                borderColor: graficoData.dados.map(value =>
-                                    value > 10 ? 'rgba(220, 53, 69, 1)' : 'rgba(255, 193, 7, 1)'
-                                ),
-                                borderWidth: 1
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            animation: {
-                                duration: 2000,
-                                easing: 'easeInOutElastic'
-                            },
-                            hover: {
-                                mode: null,
-                            },
-                            elements: {
-                                bar: {
-                                    hoverBackgroundColor: null,
-                                    hoverBorderColor: null
+    if (btnShowGrafico) {
+        btnShowGrafico.addEventListener('click', () => {
+            toggleVisibility('graficoContainer');
+            if (chartInstance === null) {
+                const graficoData = JSON.parse(document.getElementById('grafico-data').textContent);
+                const ctx = document.getElementById('graficoImpacto').getContext('2d');
+                chartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: graficoData.labels,
+                        datasets: [{
+                            label: 'Erros',
+                            data: graficoData.dados,
+                            backgroundColor: 'rgba(255, 206, 86, 0.7)',
+                            borderColor: 'rgba(255, 206, 86, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false, 
+                        plugins: {
+                            datalabels: {
+                                anchor: 'end',
+                                align: 'top',
+                                color: '#666',
+                                font: {
+                                    weight: 'bold'
                                 }
                             },
-                            onHover: function (event, chartElement) {
-                                if (chartElement.length > 0) {
-                                    event.native.target.style.cursor = 'pointer';
-                                } else {
-                                    event.native.target.style.cursor = 'default';
-                                }
-                            },
-                            responsiveAnimationDuration: 600,
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    ticks: { color: '#000' }
-                                },
-                                x: {
-                                    ticks: { color: '#000' }
-                                }
-                            },
-                            plugins: {
-                                datalabels: {
-                                    anchor: 'end',
-                                    align: 'top',
-                                    color: '#000',
-                                    font: {
-                                        weight: 'bold',
-                                        size: 12
-                                    }
-                                },
-                                tooltip: {
-                                    enabled: true,
-                                    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                                    titleColor: '#ffcc00',
-                                    bodyColor: '#ffffff',
-                                    titleFont: { weight: 'bold', size: 16 },
-                                    bodyFont: { size: 14 },
-                                    cornerRadius: 8,
-                                    caretSize: 8
-                                },
+                            zoom: {
                                 zoom: {
-                                    zoom: {
-                                        wheel: { enabled: true },
-                                        pinch: { enabled: true },
-                                        mode: 'x'
-                                    },
-                                    pan: {
+                                    wheel: {
                                         enabled: true,
-                                        mode: 'x'
-                                    }
+                                    },
+                                    pinch: {
+                                        enabled: true
+                                    },
+                                    mode: 'x',
                                 }
                             }
                         },
-                        plugins: [ChartDataLabels]
-                    });
-                }
-            });
-        }
-    });
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    },
+                    plugins: [ChartDataLabels]
+                });
+            }
+        });
+    }
+});
 </script>
-
-
 </body>
 </html>
