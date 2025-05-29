@@ -63,6 +63,25 @@ def verificar_placas_sem_saida(df_original, placas_analisadas):
     placas_sem_saida = placas_analisadas - placas_com_saida
     return sorted(placas_sem_saida)
 
+def veiculos_sem_retorno(df, placas_analisadas):
+    df = df.copy()
+    df['Data Partida'] = pd.to_datetime(df['Data Partida'], format='%d/%m/%Y', errors='coerce')
+    df['Data Retorno'] = pd.to_datetime(df['Data Retorno'], format='%d/%m/%Y', errors='coerce')
+    df['Placa'] = df['Placa'].str.strip().str.upper()
+
+    # Filtra registros com placa analisada e com saída, mas sem retorno
+    df_filtrado = df[
+        (df['Placa'].isin(placas_analisadas)) &
+        (df['Data Partida'].notna()) &
+        (df['Data Retorno'].isna())
+    ]
+
+    # Pega as últimas saídas sem retorno por veículo
+    df_resultado = df_filtrado.sort_values('Data Partida', ascending=False).drop_duplicates(subset='Placa')
+
+    return df_resultado[['Placa', 'Data Partida', 'Matrícula Condutor', 'Unidade em Operação']]
+
+
 # Verifica se linha está correta (tempo e distância)
 def verificar_corretude_linha(row, placas_scudo, placas_especificas, placas_mobi):
     tempo = row['Tempo Utilizacao']
@@ -272,6 +291,8 @@ def index():
 
             # Remove dinamicamente essas placas da lista de veículos sem saída
             placas_faltantes = [placa for placa in placas_faltantes if placa not in placas_em_manutencao]
+        
+            veiculos_sem_retorno_df = veiculos_sem_retorno(df1, placas_analisadas)
 
 
         except Exception as e:
@@ -334,6 +355,7 @@ def index():
                                grafico_labels=json.dumps(labels),
                                grafico_dados=json.dumps(valores),
                                veiculos_sem_saida=veiculos_sem_saida_html,
+                               veiculos_sem_retorno=veiculos_sem_retorno_df.to_dict(orient='records'),
                                link_csv='/download/erros_csv',
                                link_excel='/download/erros_excel',
                                regioes=regioes,
