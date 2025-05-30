@@ -290,7 +290,7 @@ def index():
 
             # Filtra placas com Status OS "APROVADA" ou "ABERTA" (em manutenção) — usando df_original!
             placas_em_manutencao = df_original[
-                df_original['Status OS'].str.upper().str.strip().isin(['APROVADA', 'ABERTA'])
+                df_original['STATUS OS'].str.upper().str.strip().isin(['APROVADA', 'ABERTA'])
             ]['Placa'].str.upper().str.strip().unique()
 
             # Remove dinamicamente essas placas da lista de veículos sem saída
