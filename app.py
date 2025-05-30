@@ -149,11 +149,15 @@ def calcular_euft(df, dias_uteis_mes, placas_scudo, placas_especificas, placas_m
     dias_registrados_por_placa = registros_distintos.groupby('Placa')['count'].count().reset_index()
     dias_registrados_por_placa.rename(columns={'count': 'Dias_Totais'}, inplace=True)
 
-    # 3) Filtrar dados válidos (com Nº Distrito) para análise de corretude
+    def is_preenchido(col):
+        return col.astype(str).str.strip().str.lower().replace('nan', '') != ''
+
     df_validos = df[
-        df['Nº Distrito'].notna() & 
-        (df['Nº Distrito'].astype(str).str.strip() != '') &
-        df['Placa'].isin(placas_analisadas)
+        df['Placa'].isin(placas_analisadas) & (
+            is_preenchido(df['Nº Distrito']) |
+            is_preenchido(df['Nº LCE']) |
+            is_preenchido(df['Nº LTU'])
+        )
     ]
 
     df_agrupado = df_validos.groupby(['Placa', 'Data Partida', 'Matrícula Condutor']).agg({
