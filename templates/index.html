@@ -181,47 +181,48 @@
         </div>
     </div>
 </div>
-{% endif %}
-{% if veiculos_sem_retorno %}
-<div id="veiculosSemRetorno" class="card table-card mt-3">
-    <div class="card-header text-center">
-        <h4>Veículos com Saída, mas Sem Retorno</h4>
-    </div>
-    <div class="card-body">
-        <div class="responsive-table-container">
-            <table class="table table-bordered table-striped">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Placa</th>
-                        <th>Data Partida</th>
-                        <th>Matrícula Condutor</th>
-                        <th>Unidade em Operação</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in veiculos_sem_retorno %}
-                    <tr>
-                        <td>{{ item['Placa'] }}</td>
-                        <td>{{ item['Data Partida'].strftime('%d/%m/%Y') if item['Data Partida'] else '' }}</td>
-                        <td>{{ item['Matrícula Condutor'] }}</td>
-                        <td>{{ item['Unidade em Operação'] }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+{% if veiculos_sem_retorno is defined and veiculos_sem_retorno %}
+    <!-- CARD COM A TABELA DE VEÍCULOS SEM RETORNO -->
+    <div id="veiculosSemRetorno" class="card table-card mt-3 {% if not veiculos_sem_retorno is defined %}d-none{% endif %}">
+        <div class="card-header text-center">
+            <h4>Veículos com Saída, mas Sem Retorno</h4>
+        </div>
+        <div class="card-body">
+            <div class="responsive-table-container">
+                <table class="table table-bordered table-striped">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Placa</th>
+                            <th>Data Partida</th>
+                            <th>Matrícula Condutor</th>
+                            <th>Unidade em Operação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in veiculos_sem_retorno %}
+                        <tr>
+                            <td>{{ item['Placa'] }}</td>
+                            <td>{{ item['Data Partida'].strftime('%d/%m/%Y') if item['Data Partida'] else '' }}</td>
+                            <td>{{ item['Matrícula Condutor'] }}</td>
+                            <td>{{ item['Unidade em Operação'] }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
-</div>
-{% else %}
-<div id="veiculosSemRetorno" class="card table-card mt-3">
-    <div class="card-body text-center">
-        <i class="bi bi-check-circle-fill text-success" style="font-size: 2rem;"></i>
-        <h5 class="mt-3 mb-2 text-success">Todos os veículos retornaram corretamente</h5>
-        <p class="text-muted mb-0">Parabéns! Nenhuma pendência de retorno foi identificada.</p>
+    {% else %}
+    <!-- MENSAGEM DE TODOS RETORNARAM -->
+    <div id="veiculosSemRetorno" class="card table-card mt-3">
+        <div class="card-body text-center">
+            <i class="bi bi-check-circle-fill text-success" style="font-size: 2rem;"></i>
+            <h5 class="mt-3 mb-2 text-success">Todos os veículos retornaram corretamente</h5>
+            <p class="text-muted mb-0">Parabéns! Nenhuma pendência de retorno foi identificada.</p>
+        </div>
     </div>
-</div>
+    {% endif %}
 {% endif %}
-
 
 <!-- Gráfico -->
 {% if grafico_labels and grafico_dados %}
