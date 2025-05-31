@@ -182,11 +182,10 @@
     </div>
 </div>
 {% endif %}
-
 {% if veiculos_sem_retorno %}
-<div id="veiculosSemRetorno" class="card table-card mt-3" style="display: none;">
+<div id="veiculosSemRetorno" class="card table-card mt-3">
     <div class="card-header text-center">
-        <h4>Veículos Sem Retorno</h4>
+        <h4>Veículos com Saída, mas Sem Retorno</h4>
     </div>
     <div class="card-body">
         <div class="responsive-table-container">
@@ -211,6 +210,14 @@
                 </tbody>
             </table>
         </div>
+    </div>
+</div>
+{% else %}
+<div id="veiculosSemRetorno" class="card table-card mt-3">
+    <div class="card-body text-center">
+        <i class="bi bi-check-circle-fill text-success" style="font-size: 2rem;"></i>
+        <h5 class="mt-3 mb-2 text-success">Todos os veículos retornaram corretamente</h5>
+        <p class="text-muted mb-0">Parabéns! Nenhuma pendência de retorno foi identificada.</p>
     </div>
 </div>
 {% endif %}
@@ -281,29 +288,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const btnShowGrafico = document.getElementById('showGrafico');
     const btnShowVeiculosSemSaida = document.getElementById('showVeiculosSemSaida');
     const btnShowVeiculosSemRetorno = document.getElementById('showVeiculosSemRetorno'); // NOVO
-    function habilitarBotaoPorHorario() {
-        const botao = document.getElementById("showVeiculosSemRetorno");
-        const agora = new Date();
-        const horas = agora.getHours();
-        const minutos = agora.getMinutes();
-        const horaDecimal = horas + minutos / 60;
-
-        if (horaDecimal >= 17 && horaDecimal <= 21) {
-            botao.disabled = false;
-            botao.style.opacity = "1";
-            botao.style.pointerEvents = "auto";
-        } else {
-            botao.disabled = true;
-            botao.style.opacity = "0.6";
-            botao.style.pointerEvents = "none";
-        }
-    }
-
-    habilitarBotaoPorHorario();
-    setInterval(habilitarBotaoPorHorario, 60000);
-
     
-
     if (btnShowResults) {
         btnShowResults.addEventListener('click', () => {
             toggleVisibility('results');
@@ -367,8 +352,10 @@ document.addEventListener('DOMContentLoaded', function () {
     if (btnShowVeiculosSemRetorno) {
         btnShowVeiculosSemRetorno.addEventListener('click', () => {
             toggleVisibility('veiculosSemRetorno');
-            if (!veiculosSemRetornoTableInitialized) {
-                $('#veiculosSemRetorno table').DataTable({
+
+            const tabela = document.getElementById('veiculosSemRetornoTable');
+            if (!veiculosSemRetornoTableInitialized && tabela) {
+                $(tabela).DataTable({
                     language: {
                         url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json'
                     }
