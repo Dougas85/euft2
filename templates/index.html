@@ -32,11 +32,20 @@
                     </select>
                 </div>
                 <div class="col-md-6 col-12 mb-3">
-                    
-                    <input type="file" name="file1" class="form-control form-control-lg ps-5 text-center rounded-pill border-primary" required>
-                    <input type="file" name="file2" class="form-control form-control-lg ps-5 text-center rounded-pill border-primary" required>
+                    <label for="inputRDVO" class="form-label fw-bold">Importar Arquivo RDVO</label>
+                    <div class="mb-3">
+                        <input type="file" class="form-control form-control-lg rounded-pill border-primary" id="inputRDVO" name="file1" required>
+                    </div>
+                    <div id="labelInputRDVO" class="form-text text-muted text-center">Nenhum arquivo selecionado</div>
 
+                    <label for="inputOS" class="form-label fw-bold mt-4">Importar Arquivo OS</label>
+                    <div class="mb-3">
+                        <input type="file" class="form-control form-control-lg rounded-pill border-primary" id="inputOS" name="file2" required>
+                    </div>
+                    <div id="labelInputOS" class="form-text text-muted text-center">Nenhum arquivo selecionado</div>
                 </div>
+
+                
                 <div class="col-md-6 col-12 mb-3">
                     <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill">Carregar</button>
                 </div>
@@ -183,13 +192,13 @@
 </div>
 {% if veiculos_sem_retorno is defined and veiculos_sem_retorno %}
     <!-- CARD COM A TABELA DE VEÍCULOS SEM RETORNO -->
-    <div id="veiculosSemRetorno" class="card table-card mt-3 {% if not veiculos_sem_retorno is defined %}d-none{% endif %}">
+    <div id="veiculosSemRetorno" class="card table-card mt-3" style="display: none;">
         <div class="card-header text-center">
             <h4>Veículos com Saída, mas Sem Retorno</h4>
         </div>
         <div class="card-body">
             <div class="responsive-table-container">
-                <table class="table table-bordered table-striped">
+                <table id="veiculosSemRetornoTable" class="table table-bordered table-striped">
                     <thead class="table-dark">
                         <tr>
                             <th>Placa</th>
@@ -221,6 +230,7 @@
             <p class="text-muted mb-0">Parabéns! Nenhuma pendência de retorno foi identificada.</p>
         </div>
     </div>
+
     {% endif %}
 {% endif %}
 
@@ -266,11 +276,11 @@ document.addEventListener('DOMContentLoaded', function () {
     let errorsTableInitialized = false;
     let semSaidaTableInitialized = false;
     let unidadeTableInitialized = false;
-    let veiculosSemRetornoTableInitialized = false; // NOVO
+    let veiculosSemRetornoTableInitialized = false;
     let chartInstance = null;
 
     function toggleVisibility(showId) {
-        const ids = ['results', 'errors', 'graficoContainer', 'veiculosSemSaida', 'veiculosSemRetorno']; // ADICIONADO 'veiculosSemRetorno'
+        const ids = ['results', 'errors', 'graficoContainer', 'veiculosSemSaida', 'veiculosSemRetorno'];
         ids.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.style.display = (id === showId && el.style.display !== 'block') ? 'block' : 'none';
@@ -288,8 +298,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const btnShowErrors = document.getElementById('showErrors');
     const btnShowGrafico = document.getElementById('showGrafico');
     const btnShowVeiculosSemSaida = document.getElementById('showVeiculosSemSaida');
-    const btnShowVeiculosSemRetorno = document.getElementById('showVeiculosSemRetorno'); // NOVO
-    
+    const btnShowVeiculosSemRetorno = document.getElementById('showVeiculosSemRetorno');
+
     if (btnShowResults) {
         btnShowResults.addEventListener('click', () => {
             toggleVisibility('results');
@@ -352,20 +362,30 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (btnShowVeiculosSemRetorno) {
         btnShowVeiculosSemRetorno.addEventListener('click', () => {
-            toggleVisibility('veiculosSemRetorno');
-
+            const div = document.getElementById('veiculosSemRetorno');
             const tabela = document.getElementById('veiculosSemRetornoTable');
-            if (!veiculosSemRetornoTableInitialized && tabela) {
-                $(tabela).DataTable({
-                    language: {
-                        url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json'
+            
+            
+            // Só alterna visibilidade se for o card da tabela
+            if (tabela && div) {
+                toggleVisibility('veiculosSemRetorno');
+
+                setTimeout(() => {
+                    if (!veiculosSemRetornoTableInitialized && tabela) {
+                        $(tabela).DataTable({
+                            language: {
+                                url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json'
+                            },
+                            paging: true,
+                            searching: true,
+                            ordering: true
+                        });
+                        veiculosSemRetornoTableInitialized = true;
                     }
-                });
-                veiculosSemRetornoTableInitialized = true;
+                }, 50);
             }
         });
     }
-
     if (btnShowGrafico) {
         btnShowGrafico.addEventListener('click', () => {
             toggleVisibility('graficoContainer');
@@ -386,7 +406,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     },
                     options: {
                         responsive: true,
-                        maintainAspectRatio: false, 
+                        maintainAspectRatio: false,
                         plugins: {
                             datalabels: {
                                 anchor: 'end',
@@ -398,25 +418,38 @@ document.addEventListener('DOMContentLoaded', function () {
                             },
                             zoom: {
                                 zoom: {
-                                    wheel: {
-                                        enabled: true,
-                                    },
-                                    pinch: {
-                                        enabled: true
-                                    },
+                                    wheel: { enabled: true },
+                                    pinch: { enabled: true },
                                     mode: 'x',
                                 }
                             }
                         },
                         scales: {
-                            y: {
-                                beginAtZero: true
-                            }
+                            y: { beginAtZero: true }
                         }
                     },
                     plugins: [ChartDataLabels]
                 });
             }
+        });
+    }
+
+    // ✅ CÓDIGO PARA ATUALIZAR NOMES DOS ARQUIVOS
+    const inputRDVO = document.getElementById('inputRDVO');
+    const labelRDVO = document.getElementById('labelInputRDVO');
+    if (inputRDVO && labelRDVO) {
+        inputRDVO.addEventListener('change', function () {
+            const nome = this.files[0] ? this.files[0].name : 'Nenhum arquivo selecionado';
+            labelRDVO.textContent = nome;
+        });
+    }
+
+    const inputOS = document.getElementById('inputOS');
+    const labelOS = document.getElementById('labelInputOS');
+    if (inputOS && labelOS) {
+        inputOS.addEventListener('change', function () {
+            const nome = this.files[0] ? this.files[0].name : 'Nenhum arquivo selecionado';
+            labelOS.textContent = nome;
         });
     }
 });
