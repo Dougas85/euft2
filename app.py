@@ -270,7 +270,14 @@ def index():
 
             # Lê arquivos CSV
             df1 = pd.read_csv(path1, delimiter=';', encoding='utf-8')
-            df2 = pd.read_csv(path2, delimiter=';', skiprows=4, encoding='utf-8')
+
+            # Lê a planilha df2, pulando 4 linhas e definindo colunas manualmente
+            colunas_df2 = ['Data Emissão', 'Placa', 'N° OS', 'STATUS OS', 'SE', 'SE SIGLA', 'Extra']
+            df2 = pd.read_csv(path2, delimiter=';', skiprows=3, names=colunas_df2, encoding='utf-8')
+
+            # Limpeza e normalização da df2
+            df2['Placa'] = df2['Placa'].str.replace(r'\s+', '', regex=True).str.upper()
+            df2['STATUS OS'] = df2['STATUS OS'].astype(str).str.strip().str.upper()
 
             # Concatena os dois DataFrames
             df_original = pd.concat([df1, df2], ignore_index=True)
@@ -289,10 +296,8 @@ def index():
             placas_faltantes = verificar_placas_sem_saida(df_original, placas_analisadas)
 
             # Filtra placas com Status OS "APROVADA" ou "ABERTA" (em manutenção) — usando df_original!
-            placas_em_manutencao = df_original[
-                df_original['Status OS'].str.upper().str.strip().isin(['APROVADA', 'ABERTA'])
-            ]['Placa'].str.upper().str.strip().unique()
-
+            placas_em_manutencao = df2[df2['STATUS OS'].isin(['APROVADA', 'ABERTA'])]['Placa'].unique()
+            
             # Remove dinamicamente essas placas da lista de veículos sem saída
             placas_faltantes = [placa for placa in placas_faltantes if placa not in placas_em_manutencao]
         
@@ -366,7 +371,6 @@ def index():
                                region_selecionada=region)
 
     return render_template('index.html', regioes=regioes)
-
 
 @app.route('/download/erros_csv')
 def download_erros_csv():
