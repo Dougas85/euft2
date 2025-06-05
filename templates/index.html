@@ -27,8 +27,14 @@
                     
                     <select name="region" class="form-select form-select-lg ps-5 text-center rounded-pill border-primary" required>
                         <option value="">Selecione sua GERAE</option>
-                        <option value="Região 7">GERAE 06</option> <!-- Corrigido -->
+                        <option value="Região 1">GERAE 01</option> 
                         <option value="Região 2">GERAE 02</option>
+                        <option value="Região 3">GERAE 03</option>
+                        <option value="Região 4">GERAE 04</option>
+                        <option value="Região 5">GERAE 05</option>
+                        <option value="Região 6">GERAE 07</option>
+                        <option value="Região 7">GERAE 06</option>
+                        <option value="Região 8">GERAE 08</option>
                     </select>
                 </div>
                 <div class="col-md-6 col-12 mb-3">
@@ -179,7 +185,7 @@
                         <th>#</th>
                         <th>Placa</th>
                         <th>Lotação Patrimonial</th>
-                        <th>Unidade em Operação</th>
+                        <th>CAE</th>
                         <th>Status</th>
                     </tr>
                 </thead>
@@ -203,8 +209,8 @@
                         <tr>
                             <th>Placa</th>
                             <th>Data Partida</th>
-                            <th>Matrícula Condutor</th>
-                            <th>Unidade em Operação</th>
+                            <th>Unidade em Operação </th>
+                            <th>CAE</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -212,8 +218,8 @@
                         <tr>
                             <td>{{ item['Placa'] }}</td>
                             <td>{{ item['Data Partida'].strftime('%d/%m/%Y') if item['Data Partida'] else '' }}</td>
-                            <td>{{ item['Matrícula Condutor'] }}</td>
                             <td>{{ item['Unidade em Operação'] }}</td>
+                            <td>{{ item['CAE'] }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -454,5 +460,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 </script>
+
+
 </body>
 </html>
