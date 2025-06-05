@@ -5,7 +5,18 @@ from datetime import datetime
 import tempfile
 from flask import send_file
 from flask import Flask, request, render_template, redirect, flash, url_for, session
-from placas import placas_scudo2, placas_scudo7, placas_analisadas2, placas_analisadas7, placas_especificas2, placas_especificas7, placas_mobi2, placas_mobi7, placas_to_lotacao2, placas_to_lotacao7
+from placas import (
+    placas_scudo2, placas_scudo7, placas_analisadas2, placas_analisadas7,
+    placas_especificas2, placas_especificas7, placas_mobi2, placas_mobi7,
+    placas_to_lotacao2, placas_to_lotacao7, placas_scudo1, placas_mobi1,
+    placas_especificas1, placas_analisadas1, placas_to_lotacao1, placas_scudo3,
+    placas_mobi3, placas_especificas3, placas_analisadas3, placas_to_lotacao3,
+    placas_scudo4, placas_mobi4, placas_especificas4, placas_analisadas4,
+    placas_to_lotacao4, placas_scudo5, placas_mobi5, placas_especificas5,
+    placas_analisadas5, placas_to_lotacao5, placas_scudo6, placas_mobi6,
+    placas_especificas6, placas_analisadas6, placas_to_lotacao6, placas_scudo8,
+    placas_mobi8, placas_especificas8, placas_analisadas8, placas_to_lotacao8
+)
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -30,7 +41,49 @@ regioes = {
         'placas_especificas': placas_especificas7,
         'placas_mobi': placas_mobi7,
         'placas_to_lotacao': placas_to_lotacao7
-    }
+    },
+    'Região 1': {
+        'placas_scudo': placas_scudo1,
+        'placas_analisadas': placas_analisadas1,
+        'placas_especificas': placas_especificas1,
+        'placas_mobi': placas_mobi1,
+        'placas_to_lotacao': placas_to_lotacao1
+    },
+    'Região 3': {
+        'placas_scudo': placas_scudo3,
+        'placas_analisadas': placas_analisadas3,
+        'placas_especificas': placas_especificas3,
+        'placas_mobi': placas_mobi3,
+        'placas_to_lotacao': placas_to_lotacao3
+    },
+    'Região 4': {
+        'placas_scudo': placas_scudo4,
+        'placas_analisadas': placas_analisadas4,
+        'placas_especificas': placas_especificas4,
+        'placas_mobi': placas_mobi4,
+        'placas_to_lotacao': placas_to_lotacao4
+    },
+    'Região 5': {
+        'placas_scudo': placas_scudo5,
+        'placas_analisadas': placas_analisadas5,
+        'placas_especificas': placas_especificas5,
+        'placas_mobi': placas_mobi5,
+        'placas_to_lotacao': placas_to_lotacao5
+    },
+    'Região 6': {
+        'placas_scudo': placas_scudo6,
+        'placas_analisadas': placas_analisadas6,
+        'placas_especificas': placas_especificas6,
+        'placas_mobi': placas_mobi6,
+        'placas_to_lotacao': placas_to_lotacao6
+    },
+    'Região 8': {
+        'placas_scudo': placas_scudo8,
+        'placas_analisadas': placas_analisadas8,
+        'placas_especificas': placas_especificas8,
+        'placas_mobi': placas_mobi8,
+        'placas_to_lotacao': placas_to_lotacao8
+    },
 }
 
 
@@ -247,6 +300,42 @@ def index():
             placas_especificas = placas_especificas2
             placas_mobi = placas_mobi2
             placas_to_lotacao = placas_to_lotacao2
+        elif region == 'Região 1':
+            placas_scudo = placas_scudo1
+            placas_analisadas = placas_analisadas1
+            placas_especificas = placas_especificas1
+            placas_mobi = placas_mobi1
+            placas_to_lotacao = placas_to_lotacao1
+        elif region == 'Região 3':
+            placas_scudo = placas_scudo3
+            placas_analisadas = placas_analisadas3
+            placas_especificas = placas_especificas3
+            placas_mobi = placas_mobi3
+            placas_to_lotacao = placas_to_lotacao3
+        elif region == 'Região 4':
+            placas_scudo = placas_scudo4
+            placas_analisadas = placas_analisadas4
+            placas_especificas = placas_especificas4
+            placas_mobi = placas_mobi4
+            placas_to_lotacao = placas_to_lotacao4
+        elif region == 'Região 5':
+            placas_scudo = placas_scudo5
+            placas_analisadas = placas_analisadas5
+            placas_especificas = placas_especificas5
+            placas_mobi = placas_mobi5
+            placas_to_lotacao = placas_to_lotacao5
+        elif region == 'Região 6':
+            placas_scudo = placas_scudo6
+            placas_analisadas = placas_analisadas6
+            placas_especificas = placas_especificas6
+            placas_mobi = placas_mobi6
+            placas_to_lotacao = placas_to_lotacao6
+        elif region == 'Região 8':
+            placas_scudo = placas_scudo8
+            placas_analisadas = placas_analisadas8
+            placas_especificas = placas_especificas8
+            placas_mobi = placas_mobi8
+            placas_to_lotacao = placas_to_lotacao8
         # Adicione mais regiões conforme necessário
 
         # Validação dos arquivos
@@ -343,8 +432,31 @@ def index():
 
         veiculos_sem_saida_html = ""
         for i, placa in enumerate(placas_faltantes, start=1):
-            lotacao_patrimonial = placas_to_lotacao.get(placa, '-')
-            veiculos_sem_saida_html += f"<tr><td>{i}</td><td>{placa}</td><td>{lotacao_patrimonial}</td><td>-</td><td><span class='badge bg-warning text-dark'>Sem saída</span></td></tr>"
+            valores = placas_to_lotacao.get(placa)
+
+            if isinstance(valores, str):
+                partes = valores.split(" - ")
+                if len(partes) == 2:
+                    lotacao_patrimonial, CAE = partes
+                else:
+                    lotacao_patrimonial = partes[0]
+                    CAE = " "
+            elif isinstance(valores, (list, tuple)):
+                lotacao_patrimonial = valores[0] if len(valores) > 0 else " "
+                CAE = valores[1] if len(valores) > 1 else " "
+            else:
+                lotacao_patrimonial = " "
+                CAE = " "
+
+            veiculos_sem_saida_html += f"""
+            <tr>
+                <td>{i}</td>
+                <td>{placa}</td>
+                <td>{lotacao_patrimonial}</td>
+                <td>{CAE}</td>
+                <td><span class='badge bg-warning text-dark'>Sem saída</span></td>
+            </tr>
+            """
 
         impacto_unidade = erros.groupby('Unidade em Operação').size().reset_index(name='Qtd_Erros')
         impacto_unidade.columns = ['Unidade', 'Qtd_Erros']
@@ -371,6 +483,7 @@ def index():
                                region_selecionada=region)
 
     return render_template('index.html', regioes=regioes)
+
 
 @app.route('/download/erros_csv')
 def download_erros_csv():
