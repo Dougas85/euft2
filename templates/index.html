@@ -32,8 +32,8 @@
                         <option value="Região 3">GERAE 03</option>
                         <option value="Região 4">GERAE 04</option>
                         <option value="Região 5">GERAE 05</option>
-                        <option value="Região 6">GERAE 07</option>
                         <option value="Região 7">GERAE 06</option>
+                        <option value="Região 6">GERAE 07</option>
                         <option value="Região 8">GERAE 08</option>
                     </select>
                 </div>
@@ -60,7 +60,7 @@
     </div>
 </div>
 
-{% if resultados or erros or (grafico_labels and grafico_dados) or veiculos_sem_saida %}
+{% if resultados or erros or (grafico_labels and grafico_dados) or veiculos_sem_saida or (veiculos_sem_retorno_data and veiculos_sem_retorno_data|length > 0) %}
 <div class="d-flex justify-content-center flex-wrap gap-2 mt-4">
     {% if resultados %}
         <button id="showResults" class="btn btn-outline-info mx-1 mb-2">Mostrar Resultados</button>
@@ -74,9 +74,11 @@
     {% if veiculos_sem_saida %}
         <button id="showVeiculosSemSaida" class="btn btn-outline-secondary mx-1 mb-2">Veículos Sem Saída</button>
     {% endif %}
-    {% if veiculos_sem_retorno %}
-    <button id="showVeiculosSemRetorno" class="btn btn-outline-warning mx-1 mb-2">Veículos Sem Retorno</button>
-    {% endif %}
+    {% if veiculos_sem_retorno_data and veiculos_sem_retorno_data|length > 0 %}
+    <button id="showVeiculosSemRetorno" class="btn btn-success mx-1 mb-2">
+        Ver Veículos Sem Retorno ({{ veiculos_sem_retorno_data|length }})
+    </button>
+{% endif %}
 
 </div>
 {% endif %}
@@ -196,49 +198,61 @@
         </div>
     </div>
 </div>
-{% if veiculos_sem_retorno is defined and veiculos_sem_retorno %}
-    <!-- CARD COM A TABELA DE VEÍCULOS SEM RETORNO -->
-    <div id="veiculosSemRetorno" class="card table-card mt-3" style="display: none;">
-        <div class="card-header text-center">
-            <h4>Veículos com Saída, mas Sem Retorno</h4>
-        </div>
-        <div class="card-body">
-            <div class="responsive-table-container">
-                <table id="veiculosSemRetornoTable" class="table table-bordered table-striped">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>Placa</th>
-                            <th>Data Partida</th>
-                            <th>Unidade em Operação </th>
-                            <th>CAE</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in veiculos_sem_retorno %}
-                        <tr>
-                            <td>{{ item['Placa'] }}</td>
-                            <td>{{ item['Data Partida'].strftime('%d/%m/%Y') if item['Data Partida'] else '' }}</td>
-                            <td>{{ item['Unidade em Operação'] }}</td>
-                            <td>{{ item['CAE'] }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-    {% else %}
-    <!-- MENSAGEM DE TODOS RETORNARAM -->
-    <div id="veiculosSemRetorno" class="card table-card mt-3">
-        <div class="card-body text-center">
-            <i class="bi bi-check-circle-fill text-success" style="font-size: 2rem;"></i>
-            <h5 class="mt-3 mb-2 text-success">Todos os veículos retornaram corretamente</h5>
-            <p class="text-muted mb-0">Parabéns! Nenhuma pendência de retorno foi identificada.</p>
-        </div>
-    </div>
-
-    {% endif %}
 {% endif %}
+{# Só entramos aqui se o backend realmente passou a variável veiculos_sem_retorno_data #}
+{% if veiculos_sem_retorno_data is defined %}
+  {% if veiculos_sem_retorno_data|length > 0 %}
+    
+    <!-- tabela oculta por padrão -->
+    <div
+      id="veiculosSemRetorno"
+      class="card table-card mt-3"
+      style="display: none;">
+      <div class="card-header text-center">
+        <h4>Veículos com Saída, mas Sem Retorno</h4>
+      </div>
+      <div class="card-body">
+        <div class="responsive-table-container">
+          <table
+            id="veiculosSemRetornoTable"
+            class="table table-bordered table-striped">
+            <thead class="table-dark">
+              <tr>
+                <th>#</th>
+                <th>Placa</th>
+                <th>Data Partida</th>
+                <th>Unidade</th>
+                <th>CAE</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in veiculos_sem_retorno_data %}
+              <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ item['Placa'] }}</td>
+                <td>{{ item['DataPartida'] }}</td>
+                <td>{{ item['Unidade'] }}</td>
+                <td>{{ item['CAE'] }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <!-- Mensagem de “nenhum sem retorno” só se a lista existir e for vazia -->
+    <div class="card table-card mt-3">
+      <div class="card-body text-center">
+        <i class="bi bi-check-circle-fill text-success" style="font-size: 2rem;"></i>
+        <h5 class="mt-3 mb-2 text-success">
+          Todos os veículos retornaram corretamente
+        </h5>
+      </div>
+    </div>
+  {% endif %}
+{% endif %}
+
 
 <!-- Gráfico -->
 {% if grafico_labels and grafico_dados %}
