@@ -363,7 +363,13 @@ def index():
             # Lê a planilha df2, pulando 4 linhas e definindo colunas manualmente
             colunas_df2 = ['Data Emissão', 'Placa', 'N° OS', 'STATUS OS', 'SE', 'SE SIGLA', 'Extra']
             df2 = pd.read_csv(path2, delimiter=';', skiprows=3, names=colunas_df2, encoding='utf-8')
+            placas_sem_retorno = veiculos_sem_retorno(df1, placas_analisadas)
+            print(placas_sem_retorno)  # Mostra o DataFrame retornado
 
+            # Remova ou comente a linha abaixo para evitar erro, pois 'df' ainda não foi criada
+            # placas_sem_retorno = veiculos_sem_retorno(df, placas_analisadas)
+
+            
             # Limpeza e normalização da df2
             df2['Placa'] = df2['Placa'].str.replace(r'\s+', '', regex=True).str.upper()
             df2['STATUS OS'] = df2['STATUS OS'].astype(str).str.strip().str.upper()
@@ -388,9 +394,12 @@ def index():
             placas_em_manutencao = df2[df2['STATUS OS'].isin(['APROVADA', 'ABERTA'])]['Placa'].unique()
             
             # Remove dinamicamente essas placas da lista de veículos sem saída
+
             placas_faltantes = [placa for placa in placas_faltantes if placa not in placas_em_manutencao]
         
             veiculos_sem_retorno_df = veiculos_sem_retorno(df1, placas_analisadas)
+            
+            """placas_sem_retorno = veiculos_sem_retorno(df1, placas_analisadas)"""
 
 
         except Exception as e:
@@ -403,7 +412,15 @@ def index():
             erros = erros.drop(columns=['Correto'])
 
         resultados_html = ""
-        resultados_veiculo['lotacao_patrimonial'] = resultados_veiculo['Placa'].map(placas_to_lotacao)
+        def extrair_lotacao(val):
+            if isinstance(val, str):
+                return val
+            elif isinstance(val, (list, tuple)):
+                return val[0] if len(val) > 0 else ''
+            return ''
+
+        resultados_veiculo['lotacao_patrimonial'] = resultados_veiculo['Placa'].map(lambda p: extrair_lotacao(placas_to_lotacao.get(p)))
+
 
         for i, row in resultados_veiculo.iterrows():
             euft_percent = f"{row['EUFT'] * 100:.2f}".replace('.', ',') + '%'
@@ -425,7 +442,7 @@ def index():
             resultados_html += f"<tr><td>{i + 1}</td><td>{row['lotacao_patrimonial']}</td><td>{row['Dias_Corretos']}</td><td>{row['Dias_Totais']}</td><td>{row['Adicional']}</td><td>{euft_unidade_percent}</td></tr>"
 
         resultados_html += "</tbody></table>"
-
+        
         erros_html = ""
         for i, row in erros.iterrows():
             erros_html += f"<tr><td>{i + 1}</td><td>{row['Placa']}</td><td>{row['Data Partida']}</td><td>{row['Distancia Percorrida']}</td><td>{row['Lotacao Patrimonial']}</td><td>{row['Unidade em Operação']}</td><td>{row['Motivo Erro']}</td><td>{row['Tempo Utilizacao Formatado']}</td></tr>"
@@ -457,30 +474,65 @@ def index():
                 <td><span class='badge bg-warning text-dark'>Sem saída</span></td>
             </tr>
             """
+        veiculos_sem_retorno_data = []  # Garante que sempre exista
+        try:
+            for i, row in enumerate(placas_sem_retorno.iterrows(), start=1):
+                _, data = row
+                placa = data['Placa']
+                data_partida = data['Data Partida'].strftime('%d/%m/%Y') if pd.notna(data['Data Partida']) else ''
+                unidade = data['Unidade em Operação']
 
+                valores = placas_to_lotacao.get(placa)
+                if isinstance(valores, str):
+                    if " - " in valores:
+                        partes = valores.split(" - ")
+                        lotacao_patrimonial = partes[0]
+                        CAE = partes[1] if len(partes) > 1 else " "
+                    else:
+                        lotacao_patrimonial = valores
+                        CAE = " "
+                elif isinstance(valores, (list, tuple)):
+                    lotacao_patrimonial = valores[0] if len(valores) > 0 else " "
+                    CAE = valores[1] if len(valores) > 1 else " "
+                else:
+                    lotacao_patrimonial = " "
+                    CAE = " "
+
+                veiculos_sem_retorno_data.append({
+                    'Placa': placa,
+                    'DataPartida': data_partida,
+                    'Unidade': unidade,
+                    'Lotacao': lotacao_patrimonial,
+                    'CAE': CAE
+                })
+
+        except Exception as e:
+            print(f"Erro ao processar veículos sem retorno: {e}")
+            # A variável ainda existirá como lista vazia, evitando quebra na renderização
+
+        # Continuação do seu processamento
         impacto_unidade = erros.groupby('Unidade em Operação').size().reset_index(name='Qtd_Erros')
         impacto_unidade.columns = ['Unidade', 'Qtd_Erros']
         labels = impacto_unidade['Unidade'].tolist()
         valores = impacto_unidade['Qtd_Erros'].tolist()
 
-        # Salva os erros para download
         temp_csv_path = os.path.join(tempfile.gettempdir(), "erros_euft.csv")
         temp_excel_path = os.path.join(tempfile.gettempdir(), "erros_euft.xlsx")
-
         erros.to_csv(temp_csv_path, index=False, sep=';', encoding='utf-8-sig')
         erros.to_excel(temp_excel_path, index=False)
 
         return render_template('index.html',
-                               resultados=resultados_html,
-                               erros=erros_html,
-                               grafico_labels=json.dumps(labels),
-                               grafico_dados=json.dumps(valores),
-                               veiculos_sem_saida=veiculos_sem_saida_html,
-                               veiculos_sem_retorno=veiculos_sem_retorno_df.to_dict(orient='records'),
-                               link_csv='/download/erros_csv',
-                               link_excel='/download/erros_excel',
-                               regioes=regioes,
-                               region_selecionada=region)
+                            resultados=resultados_html,
+                            erros=erros_html,
+                            grafico_labels=json.dumps(labels),
+                            grafico_dados=json.dumps(valores),
+                            veiculos_sem_saida=veiculos_sem_saida_html,
+                            veiculos_sem_retorno_data=veiculos_sem_retorno_data,
+                            link_csv='/download/erros_csv',
+                            link_excel='/download/erros_excel',
+                            regioes=regioes,
+                            region_selecionada=region)
+
 
     return render_template('index.html', regioes=regioes)
 
