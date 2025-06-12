@@ -27,6 +27,7 @@
                     
                     <select name="region" class="form-select form-select-lg ps-5 text-center rounded-pill border-primary" required>
                         <option value="">Selecione sua GERAE</option>
+                        <option value="Região 9">SPI</option>
                         <option value="Região 1">GERAE 01</option> 
                         <option value="Região 2">GERAE 02</option>
                         <option value="Região 3">GERAE 03</option>
@@ -176,6 +177,8 @@
 <!-- Veículos Sem Saída -->
 {% if veiculos_sem_saida %}
 <div id="veiculosSemSaida" class="card table-card mt-3" style="display: none;">
+     <!--<a href="/download/sem_saida_csv" class="btn btn-outline-success me-2" target="_blank">Baixar CSV</a>
+    <a href="/download/sem_saida_excel" class="btn btn-outline-primary" target="_blank">Baixar Excel</a>-->
     <div class="card-header text-center">
         <h4>Veículos Sem Saída</h4>
     </div>
@@ -474,7 +477,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 </script>
-
 
 </body>
 </html>
