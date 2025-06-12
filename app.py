@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+from itertools import chain
 import json
 from datetime import datetime
 import tempfile
@@ -15,7 +16,8 @@ from placas import (
     placas_to_lotacao4, placas_scudo5, placas_mobi5, placas_especificas5,
     placas_analisadas5, placas_to_lotacao5, placas_scudo6, placas_mobi6,
     placas_especificas6, placas_analisadas6, placas_to_lotacao6, placas_scudo8,
-    placas_mobi8, placas_especificas8, placas_analisadas8, placas_to_lotacao8
+    placas_mobi8, placas_especificas8, placas_analisadas8, placas_to_lotacao8, placas_scudo9,
+    placas_mobi9, placas_especificas9, placas_analisadas9, placas_to_lotacao9
 )
 
 app = Flask(__name__)
@@ -84,7 +86,26 @@ regioes = {
         'placas_mobi': placas_mobi8,
         'placas_to_lotacao': placas_to_lotacao8
     },
+    'Região 9': {
+        'placas_scudo': placas_scudo9,
+        'placas_analisadas': placas_analisadas9,
+        'placas_especificas': placas_especificas9,
+        'placas_mobi': placas_mobi9,
+        'placas_to_lotacao': placas_to_lotacao9
+    }
 }
+
+
+regioes['SPI'] = {
+    'placas_scudo': list(set(chain.from_iterable(r['placas_scudo'] for r in regioes.values()))),
+    'placas_analisadas': list(set(chain.from_iterable(r['placas_analisadas'] for r in regioes.values()))),
+    'placas_especificas': list(set(chain.from_iterable(r['placas_especificas'] for r in regioes.values()))),
+    'placas_mobi': list(set(chain.from_iterable(r['placas_mobi'] for r in regioes.values()))),
+    'placas_to_lotacao': list(set(chain.from_iterable(r['placas_to_lotacao'] for r in regioes.values()))),
+}
+
+
+
 
 
 # Função para calcular o tempo de utilização
@@ -336,6 +357,12 @@ def index():
             placas_especificas = placas_especificas8
             placas_mobi = placas_mobi8
             placas_to_lotacao = placas_to_lotacao8
+        elif region == 'Região 9':
+            placas_scudo = placas_scudo9
+            placas_analisadas = placas_analisadas9
+            placas_especificas = placas_especificas9
+            placas_mobi = placas_mobi9
+            placas_to_lotacao = placas_to_lotacao9
         # Adicione mais regiões conforme necessário
 
         # Validação dos arquivos
@@ -364,7 +391,7 @@ def index():
             colunas_df2 = ['Data Emissão', 'Placa', 'N° OS', 'STATUS OS', 'SE', 'SE SIGLA', 'Extra']
             df2 = pd.read_csv(path2, delimiter=';', skiprows=3, names=colunas_df2, encoding='utf-8')
             placas_sem_retorno = veiculos_sem_retorno(df1, placas_analisadas)
-            print(placas_sem_retorno)  # Mostra o DataFrame retornado
+            """print(placas_sem_retorno)  # Mostra o DataFrame retornado"""
 
             # Remova ou comente a linha abaixo para evitar erro, pois 'df' ainda não foi criada
             # placas_sem_retorno = veiculos_sem_retorno(df, placas_analisadas)
@@ -513,6 +540,8 @@ def index():
         # Continuação do seu processamento
         impacto_unidade = erros.groupby('Unidade em Operação').size().reset_index(name='Qtd_Erros')
         impacto_unidade.columns = ['Unidade', 'Qtd_Erros']
+        # Ordena pela quantidade de erros em ordem decrescente e seleciona os 15 maiores
+        impacto_unidade = impacto_unidade.sort_values(by='Qtd_Erros', ascending=False).head(15)
         labels = impacto_unidade['Unidade'].tolist()
         valores = impacto_unidade['Qtd_Erros'].tolist()
 
@@ -520,6 +549,13 @@ def index():
         temp_excel_path = os.path.join(tempfile.gettempdir(), "erros_euft.xlsx")
         erros.to_csv(temp_csv_path, index=False, sep=';', encoding='utf-8-sig')
         erros.to_excel(temp_excel_path, index=False)
+
+        """# Salvasr veículos sem saída
+        temp_csv_path_sem_saida = os.path.join(tempfile.gettempdir(), "sem_saida_euft.csv")
+        temp_excel_path_sem_saida = os.path.join(tempfile.gettempdir(), "sem_saida_euft.xlsx")
+        sem_saida.to_csv(temp_csv_path, index=False, sep=';', encoding='utf-8-sig')
+        sem_saida.to_excel(temp_excel_path, index=False)"""
+
 
         return render_template('index.html',
                             resultados=resultados_html,
@@ -546,6 +582,16 @@ def download_erros_csv():
 def download_erros_excel():
     temp_excel_path = os.path.join(tempfile.gettempdir(), "erros_euft.xlsx")
     return send_file(temp_excel_path, as_attachment=True, download_name="Erros_EUFT.xlsx")
+
+"""@app.route('/download/sem_saida_csv')
+def download_sem_saida_csv():
+    temp_csv_path = os.path.join(tempfile.gettempdir(), "sem_saida_euft.csv")
+    return send_file(temp_csv_path, as_attachment=True, download_name="Sem_Saida_EUFT.csv")
+
+@app.route('/download/sem_saida_excel')
+def download_sem_saida_excel():
+    temp_excel_path = os.path.join(tempfile.gettempdir(), "sem_saida_euft.xlsx")
+    return send_file(temp_excel_path, as_attachment=True, download_name="Sem_Saida_EUFT.xlsx")"""
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
