@@ -314,9 +314,9 @@ def veiculos_sem_retorno(df1, placas_analisadas):
     return placas_sem_retorno
 
 
-   """ print("Placas analisadas:", placas_analisadas[:5])
-    print("Placas únicas no df1:", df1['Placa'].unique()[:5])
-    print("Placas em comum:", df1['Placa'].isin(placas_analisadas).sum())"""
+   # print("Placas analisadas:", placas_analisadas[:5])
+   # print("Placas únicas no df1:", df1['Placa'].unique()[:5])
+   # print("Placas em comum:", df1['Placa'].isin(placas_analisadas).sum())
 
 
 
