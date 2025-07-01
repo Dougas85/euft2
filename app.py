@@ -666,7 +666,7 @@ def index():
         print(f"Total de veículos sem retorno: {len(placas_sem_retorno)}")
 
         fuso_brasilia = pytz.timezone("Americana/São_Paulo")
-        agora-brasilia = datetime.now(fuso_brasilia)
+        agora_brasilia = datetime.now(fuso_brasilia)
 
         try:
             for i, row in enumerate(placas_sem_retorno.iterrows(), start=1):
