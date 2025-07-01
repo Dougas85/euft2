@@ -533,6 +533,33 @@ def index():
                     tempo_decorrido = datetime.now() - datahora_partida
                     mais_de_sete_horas = tempo_decorrido > timedelta(hours=7)
                 print(f"{placa} - + 7h: {mais_de_sete_horas} - Partida: {datahora_partida}")
+
+                data_partida_formatada = datahora_partida.strftime('%d/%m/%Y %H:%M') if datahora_partida else ''
+
+                # Trata lotação e CAE
+                valores = placas_to_lotacao.get(placa)
+                if isinstance(valores, str):
+                    partes = valores.split(" - ")
+                    lotacao_patrimonial = partes[0]
+                    CAE = partes[1] if len(partes) > 1 else " "
+                elif isinstance(valores, (list, tuple)):
+                    lotacao_patrimonial = valores[0] if len(valores) > 0 else " "
+                    CAE = valores[1] if len(valores) > 1 else " "
+                else:
+                    lotacao_patrimonial = " "
+                    CAE = " "
+
+                veiculos_sem_retorno_data.append({
+                    'Placa': placa,
+                    'DataPartida': data_partida_formatada,
+                    'Unidade': unidade,
+                    'Lotacao': lotacao_patrimonial,
+                    'CAE': CAE,
+                    'MaisDeSeteHoras': mais_de_sete_horas
+                })
+
+        except Exception as e:
+            print(f"Erro ao processar veículos sem retorno: {e}")
            
 
         # Continuação do seu processamento
