@@ -3,6 +3,7 @@ import pandas as pd
 from itertools import chain
 import json
 from datetime import datetime, timedelta
+import pytz
 import tempfile
 import numpy as np
 from collections import Counter
@@ -664,6 +665,9 @@ def index():
 
         print(f"Total de veículos sem retorno: {len(placas_sem_retorno)}")
 
+        fuso_brasilia = pytz.timezone("Americana/São_Paulo")
+        agora-brasilia = datetime.now(fuso_brasilia)
+
         try:
             for i, row in enumerate(placas_sem_retorno.iterrows(), start=1):
                 _, data = row
@@ -676,13 +680,14 @@ def index():
                 
                 try:
                     datahora_partida = datetime.strptime(f"{data_partida_str} {hora_partida_str}", "%d/%m/%Y %H:%M")
+                    datahora_partida = fuso_brasilia.localize(datahora_partida)
                 except ValueError:
                     datahora_partida = None
 
                 # Verifica se passou mais de 7 horas
                 mais_de_sete_horas = False
-                if pd.notna(datahora_partida):
-                    tempo_decorrido = datetime.now() - datahora_partida
+                if datahora_partida:
+                    tempo_decorrido = agora_brasilia - datahora_partida
                     mais_de_sete_horas = tempo_decorrido > timedelta(hours=7)
                 print(f"{placa} - +7h: {mais_de_sete_horas} - Partida: {datahora_partida}")
 
