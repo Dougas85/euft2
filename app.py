@@ -296,6 +296,18 @@ def calcular_euft(df, dias_uteis_mes, placas_scudo, placas_especificas, placas_m
 
     return resultados_por_veiculo, df_erros
 
+def veiculos_sem_retorno(df1, placas_analisadas):
+    df1['Placa'] = df1['Placa'].astype(str).str.strip().str.upper()
+    df1['Data Retorno'] = df1['Data Retorno'].astype(str).str.strip().replace(['', 'nan', 'Nat'],pd.NA)
+    df1['Data Retorno'] = df1['Data Retorno'].astype(str).str.strip().replace(['', 'nan', 'Nat'],pd.NA)
+placas_sem_retorno - df1[
+    (df1['Placa'].isin(placas_analisadas)) &
+    (df1['Data Retorno'].isna()) &
+    (df1['Hora Retorno'].isna())
+].copy()
+return placas_sem_retorno
+
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     placas_scudo = []
