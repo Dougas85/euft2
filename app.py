@@ -665,7 +665,7 @@ def index():
 
         print(f"Total de veículos sem retorno: {len(placas_sem_retorno)}")
 
-        fuso_brasilia = pytz.timezone("Americana/Sao_Paulo")
+        fuso_brasilia = pytz.timezone("America/Sao_Paulo")
         agora_brasilia = datetime.now(fuso_brasilia)
 
         try:
