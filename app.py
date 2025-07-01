@@ -2,8 +2,10 @@ import os
 import pandas as pd
 from itertools import chain
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 import tempfile
+import numpy as np
+from collections import Counter
 from flask import send_file
 from flask import Flask, request, render_template, redirect, flash, url_for, session
 from placas import (
@@ -201,9 +203,9 @@ def motivo_erro(row, placas_scudo, placas_especificas, placas_mobi):
             return f"Distância fora do intervalo (MOBI): {dist:.1f}km"
     else:
         if not (2 <= tempo <= 8):
-            return f"Tempo fora do intervalo: {tempo:.1f}h"
+            return f"Tempo fora do intervalo (MOTO): {tempo:.1f}h"
         if not (6 <= dist <= 80):
-            return f"Distância fora do intervalo: {dist:.1f}km"
+            return f"Distância fora do intervalo (MOTO): {dist:.1f}km"
     return 'Erro não identificado'
 
 def calcular_euft(df, dias_uteis_mes, placas_scudo, placas_especificas, placas_mobi, placas_analisadas, placas_to_lotacao):
@@ -297,15 +299,25 @@ def calcular_euft(df, dias_uteis_mes, placas_scudo, placas_especificas, placas_m
     return resultados_por_veiculo, df_erros
 
 def veiculos_sem_retorno(df1, placas_analisadas):
+    # Normaliza as colunas
     df1['Placa'] = df1['Placa'].astype(str).str.strip().str.upper()
-    df1['Data Retorno'] = df1['Data Retorno'].astype(str).str.strip().replace(['', 'nan', 'Nat'],pd.NA)
-    df1['Data Retorno'] = df1['Data Retorno'].astype(str).str.strip().replace(['', 'nan', 'Nat'],pd.NA)
-placas_sem_retorno - df1[
-    (df1['Placa'].isin(placas_analisadas)) &
-    (df1['Data Retorno'].isna()) &
-    (df1['Hora Retorno'].isna())
-].copy()
-return placas_sem_retorno
+    df1['Data Retorno'] = df1['Data Retorno'].astype(str).str.strip().replace(['', 'nan', 'NaT'], pd.NA)
+    df1['Hora Retorno'] = df1['Hora Retorno'].astype(str).str.strip().replace(['', 'nan', 'NaT'], pd.NA)
+
+    # Filtro
+    placas_sem_retorno = df1[
+        (df1['Placa'].isin(placas_analisadas)) &
+        (df1['Data Retorno'].isna()) &
+        (df1['Hora Retorno'].isna())
+    ].copy()
+
+    return placas_sem_retorno
+
+
+    print("Placas analisadas:", placas_analisadas[:5])
+    print("Placas únicas no df1:", df1['Placa'].unique()[:5])
+    print("Placas em comum:", df1['Placa'].isin(placas_analisadas).sum())
+
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -399,22 +411,156 @@ def index():
             # Lê arquivos CSV
             df1 = pd.read_csv(path1, delimiter=';', encoding='utf-8')
 
+            df1['Data Retorno'] = df1['Data Retorno'].astype(str).str.strip().replace('', pd.NA)
+            df1['Hora Retorno'] = df1['Hora Retorno'].astype(str).str.strip().replace('', pd.NA)
+
+
             # Lê a planilha df2, pulando 4 linhas e definindo colunas manualmente
             colunas_df2 = ['Data Emissão', 'Placa', 'N° OS', 'STATUS OS', 'SE', 'SE SIGLA', 'Extra']
             df2 = pd.read_csv(path2, delimiter=';', skiprows=3, names=colunas_df2, encoding='utf-8')
             placas_sem_retorno = veiculos_sem_retorno(df1, placas_analisadas)
             """print(placas_sem_retorno)  # Mostra o DataFrame retornado"""
-
-            # Remova ou comente a linha abaixo para evitar erro, pois 'df' ainda não foi criada
-            # placas_sem_retorno = veiculos_sem_retorno(df, placas_analisadas)
-
             
             # Limpeza e normalização da df2
             df2['Placa'] = df2['Placa'].str.replace(r'\s+', '', regex=True).str.upper()
             df2['STATUS OS'] = df2['STATUS OS'].astype(str).str.strip().str.upper()
 
+            placas_em_manutencao = df2[df2['STATUS OS'].isin(['APROVADA', 'ABERTA'])]['Placa'].unique()
+
             # Concatena os dois DataFrames
             df_original = pd.concat([df1, df2], ignore_index=True)
+
+            # Normaliza as placas e associa à lotação
+            df_original['Placa'] = df_original['Placa'].astype(str).str.strip().str.upper()
+            # Garante que cada valor do dicionário tenha apenas o primeiro nome da lotação
+            placas_to_lotacao_corrigido = {
+                placa: (lot[0] if isinstance(lot, tuple) else lot)
+                for placa, lot in placas_to_lotacao.items()
+            }
+
+            df_original['lotacao_patrimonial'] = df_original['Placa'].map(placas_to_lotacao_corrigido)
+
+
+            # Converte a data corretamente, forçando interpretação com dia primeiro
+            df_original['Data Partida'] = pd.to_datetime(df_original['Data Partida'], dayfirst=True, errors='coerce')
+            df_original = df_original.dropna(subset=['Data Partida'])
+
+            # Filtra apenas os dias úteis (segunda a sexta)
+            df_uteis = df_original[df_original['Data Partida'].dt.dayofweek < 5].copy()
+
+            # Agrupa quantidade de placas que saíram por lotação e dia
+            placas_por_lot_dia = df_uteis.groupby(['lotacao_patrimonial', 'Data Partida'])['Placa'].nunique().reset_index()
+            placas_por_lot_dia.rename(columns={'Placa': 'placas_saida'}, inplace=True)
+
+            # Conta o total de placas disponíveis por lotação
+            total_placas_lot = Counter()
+            for placa, lot in placas_to_lotacao_corrigido.items():
+                if lot and placa not in placas_em_manutencao:
+                    total_placas_lot[lot] += 1
+
+            # Cria o pivot com as saídas por dia
+            pivot = placas_por_lot_dia.pivot(index='lotacao_patrimonial', columns='Data Partida', values='placas_saida').fillna(0)
+
+            # Calcula o déficit: total disponível - saídas
+            for lot in pivot.index:
+                placas_disp = total_placas_lot.get(lot, 0)
+                for dia in pivot.columns:
+                    saidas = pivot.at[lot, dia]
+                    deficit = max(0, placas_disp - saidas)  # impede valor negativo
+                    pivot.at[lot, dia] = deficit
+    
+            # Soma total de déficits por lotação
+            pivot['Déficit Total'] = pivot.sum(axis=1)
+
+            # Ordena as colunas de datas antes de convertê-las para string
+            colunas_datas = [col for col in pivot.columns if isinstance(col, pd.Timestamp)]
+            colunas_finais = sorted(colunas_datas) + ['Déficit Total']
+            pivot = pivot[colunas_finais]
+
+            # Converte datas das colunas para formato DD/MM/YYYY
+            pivot.columns = [col.strftime('%d/%m/%Y') if isinstance(col, pd.Timestamp) else col for col in pivot.columns]
+
+            
+            # Reseta índice para gerar DataFrame final
+            deficit_df = pivot.reset_index()
+
+            # Identifica colunas de datas (exclui 'lotacao_patrimonial' e 'Déficit Total')
+            dias_cols = [col for col in deficit_df.columns if '/' in col and col != 'Déficit Total']
+
+
+            # Conta quantos dias com déficit > 0
+            deficit_count = (deficit_df[dias_cols] > 0).sum(axis=1)
+            total_dias = len(dias_cols)
+
+
+            # Conta quantos dias com déficit > 0
+            deficit_count = (deficit_df[dias_cols] > 0).sum(axis=1)
+            total_dias = len(dias_cols)
+
+            # Define classe com base nos critérios:
+            def classificar_linha(dias_com_deficit):
+                if dias_com_deficit == total_dias:
+                    return 'linha-vermelha'
+                elif dias_com_deficit >= total_dias / 2:
+                    return 'linha-amarela'
+                else:
+                    return 'linha-verde'
+
+            deficit_df['classe_linha'] = deficit_count.map(classificar_linha)
+
+                        
+            # Define colunas visíveis (exclui 'classe_linha')
+            colunas_visiveis = [col for col in deficit_df.columns if col != 'classe_linha']
+
+           # Legenda com cores e descrições
+            legenda_html = '''
+            <div class="mb-3">
+                <h6><strong>Legenda de Status:</strong></h6>
+                <ul class="list-unstyled d-flex gap-4">
+                    <li><span class="badge bg-success rounded-pill px-3 py-2">&nbsp;</span> <span class="ms-2">Pouco ou nenhum déficit</span></li>
+                    <li><span class="badge bg-warning text-dark rounded-pill px-3 py-2">&nbsp;</span> <span class="ms-2">Déficit em 50% ou mais dos dias</span></li>
+                    <li><span class="badge bg-danger rounded-pill px-3 py-2">&nbsp;</span> <span class="ms-2">Déficit todos os dias</span></li>
+                </ul>
+            </div>
+            '''
+
+            # Monta a tabela com status por linha
+            deficit_html = legenda_html
+            deficit_html += '<table id="usoPorDiaTable" class="table table-bordered table-striped text-center align-middle">'
+            deficit_html += '<thead class="table-light"><tr>'
+            deficit_html += '<th>Status</th>' + ''.join(f'<th>{col}</th>' for col in colunas_visiveis) + '</tr></thead><tbody>'
+
+            for _, row in deficit_df.iterrows():
+                classe = row['classe_linha']
+                
+                # Ícone por classe
+                if classe == 'linha-vermelha':
+                    icone = '&#128308;'  # 🔴
+                    cor = 'red'
+                    titulo = 'Déficit em todos os dias'
+                elif classe == 'linha-amarela':
+                    icone = '&#128993;'  # 🟠
+                    cor = 'orange'
+                    titulo = 'Déficit em 50% ou mais dos dias'
+                else:
+                    icone = '&#128994;'  # 🟢
+                    cor = 'green'
+                    titulo = 'Pouco ou nenhum déficit'
+
+                deficit_html += f'<tr class="{classe}">'
+                deficit_html += f'<td title="{titulo}"><span style="font-size:1.2em; color:{cor};">{icone}</span></td>'
+
+                for col in colunas_visiveis:
+                    valor = row[col]
+                    if isinstance(valor, (int, float)):
+                        valor = int(valor)
+                    deficit_html += f'<td>{valor}</td>'
+                
+                deficit_html += '</tr>'
+
+            deficit_html += '</tbody></table>'
+
+
 
             # Normalização e pré-processamento
             df_original.columns = df_original.columns.str.strip()
@@ -430,13 +576,13 @@ def index():
             placas_faltantes = verificar_placas_sem_saida(df_original, placas_analisadas)
 
             # Filtra placas com Status OS "APROVADA" ou "ABERTA" (em manutenção) — usando df_original!
-            placas_em_manutencao = df2[df2['STATUS OS'].isin(['APROVADA', 'ABERTA'])]['Placa'].unique()
+            """placas_em_manutencao = df2[df2['STATUS OS'].isin(['APROVADA', 'ABERTA'])]['Placa'].unique()"""
             
             # Remove dinamicamente essas placas da lista de veículos sem saída
 
             placas_faltantes = [placa for placa in placas_faltantes if placa not in placas_em_manutencao]
         
-            veiculos_sem_retorno_df = veiculos_sem_retorno(df1, placas_analisadas)
+            """veiculos_sem_retorno_df = veiculos_sem_retorno(df1, placas_analisadas)"""
             
             """placas_sem_retorno = veiculos_sem_retorno(df1, placas_analisadas)"""
 
@@ -513,26 +659,33 @@ def index():
                 <td><span class='badge bg-warning text-dark'>Sem saída</span></td>
             </tr>
             """
-        veiculos_sem_retorno_data = []  # Garante que sempre exista
+    
+        veiculos_sem_retorno_data = []
+
+        print(f"Total de veículos sem retorno: {len(placas_sem_retorno)}")
+
         try:
             for i, row in enumerate(placas_sem_retorno.iterrows(), start=1):
                 _, data = row
                 placa = data['Placa']
                 unidade = data.get('Unidade em Operação', '')
 
+                # Constrói datetime de partida
                 data_partida_str = str(data.get('Data Partida', '')).strip()
                 hora_partida_str = str(data.get('Hora Partida', '')).strip()
-
+                
                 try:
-                    datahora_partida = datetime.strptime(f"{data_partida_str} {hora_partida_str}", "%d/%m/%Y %H:%M)
+                    datahora_partida = datetime.strptime(f"{data_partida_str} {hora_partida_str}", "%d/%m/%Y %H:%M")
                 except ValueError:
                     datahora_partida = None
 
+                # Verifica se passou mais de 7 horas
                 mais_de_sete_horas = False
                 if pd.notna(datahora_partida):
                     tempo_decorrido = datetime.now() - datahora_partida
                     mais_de_sete_horas = tempo_decorrido > timedelta(hours=7)
-                print(f"{placa} - + 7h: {mais_de_sete_horas} - Partida: {datahora_partida}")
+                print(f"{placa} - +7h: {mais_de_sete_horas} - Partida: {datahora_partida}")
+
 
                 data_partida_formatada = datahora_partida.strftime('%d/%m/%Y %H:%M') if datahora_partida else ''
 
@@ -560,7 +713,8 @@ def index():
 
         except Exception as e:
             print(f"Erro ao processar veículos sem retorno: {e}")
-           
+
+
 
         # Continuação do seu processamento
         impacto_unidade = erros.groupby('Unidade em Operação').size().reset_index(name='Qtd_Erros')
@@ -592,7 +746,8 @@ def index():
                             link_csv='/download/erros_csv',
                             link_excel='/download/erros_excel',
                             regioes=regioes,
-                            region_selecionada=region)
+                            region_selecionada=region,
+                            deficit_html=deficit_html)
 
 
     return render_template('index.html', regioes=regioes)
@@ -620,3 +775,4 @@ def download_sem_saida_excel():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
+
