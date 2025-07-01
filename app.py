@@ -518,36 +518,22 @@ def index():
             for i, row in enumerate(placas_sem_retorno.iterrows(), start=1):
                 _, data = row
                 placa = data['Placa']
-                data_partida = data['Data Partida'].strftime('%d/%m/%Y') if pd.notna(data['Data Partida']) else ''
-                unidade = data['Unidade em Operação']
+                unidade = data.get('Unidade em Operação', '')
 
-                valores = placas_to_lotacao.get(placa)
-                if isinstance(valores, str):
-                    if " - " in valores:
-                        partes = valores.split(" - ")
-                        lotacao_patrimonial = partes[0]
-                        CAE = partes[1] if len(partes) > 1 else " "
-                    else:
-                        lotacao_patrimonial = valores
-                        CAE = " "
-                elif isinstance(valores, (list, tuple)):
-                    lotacao_patrimonial = valores[0] if len(valores) > 0 else " "
-                    CAE = valores[1] if len(valores) > 1 else " "
-                else:
-                    lotacao_patrimonial = " "
-                    CAE = " "
+                data_partida_str = str(data.get('Data Partida', '')).strip()
+                hora_partida_str = str(data.get('Hora Partida', '')).strip()
 
-                veiculos_sem_retorno_data.append({
-                    'Placa': placa,
-                    'DataPartida': data_partida,
-                    'Unidade': unidade,
-                    'Lotacao': lotacao_patrimonial,
-                    'CAE': CAE
-                })
+                try:
+                    datahora_partida = datetime.strptime(f"{data_partida_str} {hora_partida_str}", "%d/%m/%Y %H:%M)
+                except ValueError:
+                    datahora_partida = None
 
-        except Exception as e:
-            print(f"Erro ao processar veículos sem retorno: {e}")
-            # A variável ainda existirá como lista vazia, evitando quebra na renderização
+                mais_de_sete_horas = False
+                if pd.notna(datahora_partida):
+                    tempo_decorrido = datetime.now() - datahora_partida
+                    mais_de_sete_horas = tempo_decorrido > timedelta(hours=7)
+                print(f"{placa} - + 7h: {mais_de_sete_horas} - Partida: {datahora_partida}")
+           
 
         # Continuação do seu processamento
         impacto_unidade = erros.groupby('Unidade em Operação').size().reset_index(name='Qtd_Erros')
