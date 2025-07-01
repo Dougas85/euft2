@@ -16,64 +16,65 @@
 </nav>
 
 <div class="container mt-5">
-    <!-- Selecionar a Região -->
-    <div class="card central-card mb-4 shadow rounded-3">
-        <div class="card-header text-center bg-primary text-white">
-            <h4 class="mb-0">EUFT Diário</h4>
-        </div>
-        <div class="card-body text-center">
-            <form method="POST" enctype="multipart/form-data" class="d-flex flex-column align-items-center">
-                <div class="mb-3 w-50 position-relative">
-                    
-                    <select name="region" class="form-select form-select-lg ps-5 text-center rounded-pill border-primary" required>
-                        <option value="">Selecione sua GERAE</option>
-                        <option value="Região 9">SPI</option>
-                        <option value="Região 1">GERAE 01</option> 
-                        <option value="Região 2">GERAE 02</option>
-                        <option value="Região 3">GERAE 03</option>
-                        <option value="Região 4">GERAE 04</option>
-                        <option value="Região 5">GERAE 05</option>
-                        <option value="Região 7">GERAE 06</option>
-                        <option value="Região 6">GERAE 07</option>
-                        <option value="Região 8">GERAE 08</option>
-                    </select>
-                 </div>
+  <!-- Selecionar a Região -->
+  <div class="card central-card mb-4 shadow rounded-3">
+    <div class="card-header text-center bg-primary text-white">
+      <h4 class="mb-0">EUFT Diário</h4>
+    </div>
+    <div class="card-body text-center">
+      <form method="POST" enctype="multipart/form-data" class="d-flex flex-column align-items-center">
 
-                <div class="row w-100 justify-content-center">
-        
-                  <div class="col-md-6 col-12 mb-3">
-                    <label for="inputRDVO" class="form-label fw-bold">Importar Arquivo RDVO</label>
-                    <div class="mb-3">
-                      <input type="file" class="form-control form-control-lg rounded-pill border-primary" id="inputRDVO" name="file1" required>
-                    </div>
-                    <div id="labelInputRDVO" class="form-text text-muted text-center">Nenhum arquivo selecionado</div>
-        
-                    <label for="inputOS" class="form-label fw-bold mt-4">Importar Arquivo OS</label>
-                    <div class="mb-3">
-                      <input type="file" class="form-control form-control-lg rounded-pill border-primary" id="inputOS" name="file2" required>
-                    </div>
-                    <div id="labelInputOS" class="form-text text-muted text-center">Nenhum arquivo selecionado</div>
-                  </div>
-        
-                  <div class="col-md-3 col-8 mb-3 d-flex flex-column justify-content-center">
-                    <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill">Carregar</button>
-                    <div id="progressBar" class="w-100 mt-3" style="display: none;">
-                      <div class="progress">
-                        <div class="progress-bar progress-bar-striped progress-bar-animated bg-info" role="progressbar" style="width: 100%;">
-                          Processando... aguarde
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-        
+        <div class="mb-3 w-50 position-relative">
+          <select name="region" class="form-select form-select-lg ps-5 text-center rounded-pill border-primary" required>
+            <option value="">Selecione sua GERAE</option>
+            <option value="Região 9">SPI</option>
+            <option value="Região 1">GERAE 01</option> 
+            <option value="Região 2">GERAE 02</option>
+            <option value="Região 3">GERAE 03</option>
+            <option value="Região 4">GERAE 04</option>
+            <option value="Região 5">GERAE 05</option>
+            <option value="Região 7">GERAE 06</option>
+            <option value="Região 6">GERAE 07</option>
+            <option value="Região 8">GERAE 08</option>
+          </select>
+        </div>
+
+        <div class="row w-100 justify-content-center">
+
+          <div class="col-md-6 col-12 mb-3">
+            <label for="inputRDVO" class="form-label fw-bold">Importar Arquivo RDVO</label>
+            <div class="mb-3">
+              <input type="file" class="form-control form-control-lg rounded-pill border-primary" id="inputRDVO" name="file1" required>
+            </div>
+            <div id="labelInputRDVO" class="form-text text-muted text-center">Nenhum arquivo selecionado</div>
+
+            <label for="inputOS" class="form-label fw-bold mt-4">Importar Arquivo OS</label>
+            <div class="mb-3">
+              <input type="file" class="form-control form-control-lg rounded-pill border-primary" id="inputOS" name="file2" required>
+            </div>
+            <div id="labelInputOS" class="form-text text-muted text-center">Nenhum arquivo selecionado</div>
+          </div>
+
+          <div class="col-md-3 col-8 mb-3 d-flex flex-column justify-content-center">
+            <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill">Carregar</button>
+            <div id="progressBar" class="w-100 mt-3" style="display: none;">
+              <div class="progress">
+                <div class="progress-bar progress-bar-striped progress-bar-animated bg-info" role="progressbar" style="width: 100%;">
+                  Processando... aguarde
                 </div>
-        
-              </form>
+              </div>
             </div>
           </div>
+
         </div>
 
-               
+      </form>
+    </div>
+  </div>
+</div>
+
+                
+
 
 {% if resultados or erros or (grafico_labels and grafico_dados) or veiculos_sem_saida or (veiculos_sem_retorno_data and veiculos_sem_retorno_data|length > 0) %}
 <div class="d-flex justify-content-center flex-wrap gap-2 mt-4">
@@ -91,9 +92,14 @@
     {% endif %}
     {% if veiculos_sem_retorno_data and veiculos_sem_retorno_data|length > 0 %}
     <button id="showVeiculosSemRetorno" class="btn btn-success mx-1 mb-2">
-        Ver Veículos Sem Retorno ({{ veiculos_sem_retorno_data|length }})
+         Veículos Sem Retorno ({{ veiculos_sem_retorno_data|length }})
     </button>
-{% endif %}
+    {% endif %}
+     <!-- {% if deficit_html %}
+     <button id="showUsoPorDia" class="btn btn-outline-warning mx-1 mb-2">
+        Déficit Diário
+    </button>
+    {% endif %} -->
 
 </div>
 {% endif %}
@@ -216,6 +222,22 @@
     </div>
 </div>
 {% endif %}
+
+{% if deficit_html %}
+<div id="usoPorDiaSection" class="mt-4" style="display: none;">
+    <div class="card table-card">
+        <div class="card-header bg-warning text-dark text-center">
+            <h5 class="mb-0">Déficit Diário por Lotação</h5>
+        </div>
+        <div class="card-body">
+            <div style="overflow-x: auto;">
+                {{ deficit_html|safe }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 {# Só entramos aqui se o backend realmente passou a variável veiculos_sem_retorno_data #}
 {% if veiculos_sem_retorno_data is defined %}
   {% if veiculos_sem_retorno_data|length > 0 %}
@@ -314,10 +336,11 @@ document.addEventListener('DOMContentLoaded', function () {
     let semSaidaTableInitialized = false;
     let unidadeTableInitialized = false;
     let veiculosSemRetornoTableInitialized = false;
+    let usoPorDiaTableInitialized = false;
     let chartInstance = null;
 
     function toggleVisibility(showId) {
-        const ids = ['results', 'errors', 'graficoContainer', 'veiculosSemSaida', 'veiculosSemRetorno'];
+        const ids = ['results', 'errors', 'graficoContainer', 'veiculosSemSaida', 'veiculosSemRetorno', 'usoPorDiaSection'];
         ids.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.style.display = (id === showId && el.style.display !== 'block') ? 'block' : 'none';
@@ -336,6 +359,28 @@ document.addEventListener('DOMContentLoaded', function () {
     const btnShowGrafico = document.getElementById('showGrafico');
     const btnShowVeiculosSemSaida = document.getElementById('showVeiculosSemSaida');
     const btnShowVeiculosSemRetorno = document.getElementById('showVeiculosSemRetorno');
+    const btnShowUsoPorDia = document.getElementById('showUsoPorDia');
+
+
+    if (btnShowUsoPorDia) {
+        btnShowUsoPorDia.addEventListener('click', () => {
+            toggleVisibility('usoPorDiaSection');
+
+            if (!usoPorDiaTableInitialized && $('#usoPorDiaTable').length) {
+                $('#usoPorDiaTable').DataTable({
+                    language: {
+                        url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json'
+                    },
+                    paging: true,
+                    searching: true,
+                    ordering: true,
+                    order: [[1, 'asc']]
+                });
+                usoPorDiaTableInitialized = true;
+            }
+        });
+    }
+
 
     if (btnShowResults) {
         btnShowResults.addEventListener('click', () => {
@@ -396,6 +441,36 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+
+    if (!usoPorDiaTableInitialized && $('#usoPorDiaTable').length) {
+        $('#usoPorDiaTable').DataTable({
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json'
+            },
+            paging: true,
+            searching: true,
+            ordering: true,
+            order: [[1, 'asc']], // ordena pela primeira coluna de data, ajuste se necessário
+            columnDefs: [
+                {
+                    targets: '_all',  // você pode ajustar para colunas específicas se quiser
+                    render: function (data, type, row, meta) {
+                        // Tenta converter strings no formato ISO (YYYY-MM-DD) para DD/MM/YYYY
+                        if (type === 'display' || type === 'filter') {
+                            const isoDateRegex = /^\d{4}-\d{2}-\d{2}$/;
+                            if (typeof data === 'string' && isoDateRegex.test(data)) {
+                                const parts = data.split('-');
+                                return parts[2] + '/' + parts[1] + '/' + parts[0];
+                            }
+                        }
+                        return data;
+                    }
+                }
+            ]
+        });
+        usoPorDiaTableInitialized = true;
+    }
+
 
     if (btnShowVeiculosSemRetorno) {
         btnShowVeiculosSemRetorno.addEventListener('click', () => {
@@ -491,6 +566,25 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 </script>
+<style>
+.linha-verde {
+    background-color: #d4edda !important; /* verde claro */
+}
+.linha-amarela {
+    background-color: #fff3cd !important; /* amarelo claro */
+}
+.linha-vermelha {
+    background-color: #f8d7da !important; /* vermelho claro */
+}
+</style>
+
+<script>
+    document.querySelector("form").addEventListener("submit", function () {
+        document.getElementById("progressBar").style.display = "block";
+    });
+</script>
+
+
 
 </body>
 </html>
