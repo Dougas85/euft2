@@ -688,8 +688,8 @@ def index():
                 mais_de_sete_horas = False
                 if datahora_partida:
                     tempo_decorrido = agora_brasilia - datahora_partida
-                    mais_de_sete_horas = tempo_decorrido > timedelta(hours=7)
-                print(f"{placa} - +7h: {mais_de_sete_horas} - Partida: {datahora_partida}")
+                    mais_de_sete_horas = tempo_decorrido > timedelta(hours=8)
+                print(f"{placa} - +8h: {mais_de_sete_horas} - Partida: {datahora_partida}")
 
 
                 data_partida_formatada = datahora_partida.strftime('%d/%m/%Y %H:%M') if datahora_partida else ''
