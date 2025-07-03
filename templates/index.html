@@ -251,48 +251,53 @@
         <h4>Veículos com Saída, mas Sem Retorno</h4>
       </div>
       <div class="card-body">
-        <div class="responsive-table-container">
-          <table
-            id="veiculosSemRetornoTable"
-            class="table table-bordered table-striped">
-            <thead class="table-dark">
-              <tr>
-                <th>#</th>
-                <th>Placa</th>
-                <th>Data Partida</th>
-                <th>Unidade</th>
-                <th>CAE</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for item in veiculos_sem_retorno_data %}
-              <tr {% if item['MaisDeSeteHoras'] %}class="table-danger"{% endif %}>
-                <td>{{ loop.index }}</td>
-                <td>{{ item['Placa'] }}</td>
-                <td>{{ item['DataPartida'] }}</td>
-                <td>{{ item['Unidade'] }}</td>
-                <td>{{ item['CAE'] }}</td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+          <!-- ✅ CHECKBOX para filtrar linhas com atraso -->
+        <div class="form-check mb-3 text-end">
+            <input class="form-check-input" type="checkbox" id="checkboxAtraso" onchange="toggleAtrasados()">
+            <label class="form-check-label" for="checkboxAtraso">
+            Mostrar apenas veículos com atraso 🔴
+            </label>
         </div>
-      </div>
-    </div>
-  {% else %}
-    <!-- Mensagem de “nenhum sem retorno” só se a lista existir e for vazia -->
-    <div class="card table-card mt-3">
-      <div class="card-body text-center">
-        <i class="bi bi-check-circle-fill text-success" style="font-size: 2rem;"></i>
-        <h5 class="mt-3 mb-2 text-success">
-          Todos os veículos retornaram corretamente
-        </h5>
-      </div>
-    </div>
-  {% endif %}
-{% endif %}
-
-
+            <div class="responsive-table-container">
+              <table
+                id="veiculosSemRetornoTable"
+                class="table table-bordered table-striped">
+                <thead class="table-dark">
+                  <tr>
+                    <th>#</th>
+                    <th>Placa</th>
+                    <th>Data Partida</th>
+                    <th>Unidade</th>
+                    <th>CAE</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for item in veiculos_sem_retorno_data %}
+                  <tr {% if item['MaisDeSeteHoras'] %}class="table-danger atrasado"{% endif %}>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ item['Placa'] }}</td>
+                    <td>{{ item['DataPartida'] }}</td>
+                    <td>{{ item['Unidade'] }}</td>
+                    <td>{{ item['CAE'] }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      {% else %}
+        <!-- Mensagem de “nenhum sem retorno” só se a lista existir e for vazia -->
+        <div class="card table-card mt-3">
+          <div class="card-body text-center">
+            <i class="bi bi-check-circle-fill text-success" style="font-size: 2rem;"></i>
+            <h5 class="mt-3 mb-2 text-success">
+              Todos os veículos retornaram corretamente
+            </h5>
+          </div>
+        </div>
+      {% endif %}
+    {% endif %}
 <!-- Gráfico -->
 {% if grafico_labels and grafico_dados %}
 <div id="graficoContainer" class="card table-card mt-3" style="display: none;">
@@ -583,8 +588,21 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById("progressBar").style.display = "block";
     });
 </script>
+<script>
+  function toggleAtrasados() {
+    const mostrarAtrasados = document.getElementById("checkboxAtraso").checked;
+    const linhas = document.querySelectorAll("#veiculosSemRetornoTable tbody tr");
 
-
+    linhas.forEach((linha) => {
+      const ehAtrasado = linha.classList.contains("atrasado");
+      if (mostrarAtrasados) {
+        linha.style.display = ehAtrasado ? "" : "none";
+      } else {
+        linha.style.display = "";
+      }
+    });
+  }
+</script>
 
 </body>
 </html>
