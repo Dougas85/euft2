@@ -41,7 +41,7 @@ body {
 /* Cards com animação suave */
 .card.central-card,
 .table-card {
-    max-width: 965px;
+    max-width: 980px;
     margin: 0 auto;
     border-radius: 25px;
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
