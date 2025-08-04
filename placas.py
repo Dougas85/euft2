@@ -111,7 +111,7 @@ placas_to_lotacao2 = {'BYY6C91': ('AC ADAMANTINA', 'CAE TUP'), 'DUQ9B41': ('AC A
                      'FCN6E81': ('AC RINOPOLIS', 'CAE TUP'), 'GCD7E61': ('AC ROSANA', 'CAE PPZ',), 'DEF9552': ('AC SALMOURAO', 'CAE TUP'), 
                      'ESF1J01': ('AC SANDOVALINA', 'CAE PPZ'), 'FHZ4036': ('AC SANTO ANASTACIO', 'CAE PPE'), 
                      'FPE6E71': ('AC SANTO ANASTACIO', 'CAE PPE'), 'SWY1J34': ('AC SANTO ANASTACIO', 'CAE PPE'), 
-                     'EJV8F41': ('AC SANTO ANTONIO DO ARACANGUA', 'CAE ARC'), 'BYZ6441': ('AC SANTO EXPEDITO', 'CAE PPE'), 
+                     'BYZ6441': ('AC SANTO EXPEDITO', 'CAE PPE'), 
                      'FYW0F71': ('AC SANTO POLIS DO AGUAPEI', 'CAE ARC'), 'GEU7D21': ('AC TACIBA', 'CAE PPZ'), 
                      'GJH3E85': ('AC TARABAI', 'CAE PPZ'), 'GCM6A31': ('CDD VILA MARCONDES', 'CAE PPZ'), 
                      'GDB0D01': ('AC TEODORO SAMPAIO', 'CAE PPZ'), 'SVE3D04': ('AC TEODORO SAMPAIO', 'CAE PPZ'), 
@@ -128,7 +128,7 @@ placas_to_lotacao2 = {'BYY6C91': ('AC ADAMANTINA', 'CAE TUP'), 'DUQ9B41': ('AC A
                      'GIE9B87': ('CDD ARACATUBA', 'CAE ARC'), 'BWW9048': ('CDD ARACATUBA', 'CAE ARC'), 
                      'CKU8601': ('CDD ARACATUBA', 'CAE ARC'), 'DNU1631': ('CDD ARACATUBA', 'CAE ARC'), 
                      'ELE4G71': ('CDD ARACATUBA', 'CAE ARC'), 'EPT6183': ('CDD ARACATUBA', 'CAE ARC'), 
-                     'FMS7635': ('CDD ARACATUBA', 'CAE ARC'), 'FPD7233': ('CDD ARACATUBA', 'CAE ARC'), 
+                     'FMS7635': ('CDD ARACATUBA', 'CAE ARC'), 'FPD7233': ('CDD ARACATUBA', 'CAE ARC'), 'EJV8F41': ('CDD ARACATUBA', 'CAE ARC'),
                      'CUL8F53': ('CDD BIRIGUI', 'CAE ARC'), 'DKZ2691': ('CDD BIRIGUI', 'CAE ARC'), 'EBD3111': ('CDD BIRIGUI', 'CAE ARC'), 
                      'EOF0H11': ('CDD BIRIGUI', 'CAE ARC'), 'FCO3I61': ('CDD BIRIGUI', 'CAE ARC'), 'FIH0D32': ('CDD BIRIGUI', 'CAE ARC'), 
                      'FSL3J21': ('CDD BIRIGUI', 'CAE ARC'), 'SSW8H30': ('CDD BIRIGUI', 'CAE ARC'), 'FYY6J21': ('CDD BIRIGUI', 'CAE ARC'), 
@@ -5338,7 +5338,7 @@ placas_to_lotacao9 = {'BYY6C91': ('AC ADAMANTINA', 'CAE TUP'), 'DUQ9B41': ('AC A
                      'FCN6E81': ('AC RINOPOLIS', 'CAE TUP'), 'GCD7E61': ('AC ROSANA', 'CAE PPZ',), 'DEF9552': ('AC SALMOURAO', 'CAE TUP'), 
                      'ESF1J01': ('AC SANDOVALINA', 'CAE PPZ'), 'FHZ4036': ('AC SANTO ANASTACIO', 'CAE PPE'), 
                      'FPE6E71': ('AC SANTO ANASTACIO', 'CAE PPE'), 'SWY1J34': ('AC SANTO ANASTACIO', 'CAE PPE'), 
-                     'EJV8F41': ('AC SANTO ANTONIO DO ARACANGUA', 'CAE ARC'), 'BYZ6441': ('AC SANTO EXPEDITO', 'CAE PPE'), 
+                     'BYZ6441': ('AC SANTO EXPEDITO', 'CAE PPE'), 
                      'FYW0F71': ('AC SANTO POLIS DO AGUAPEI', 'CAE ARC'), 'GEU7D21': ('AC TACIBA', 'CAE PPZ'), 
                      'GJH3E85': ('AC TARABAI', 'CAE PPZ'), 'GCM6A31': ('CDD VILA MARCONDES', 'CAE PPZ'), 
                      'GDB0D01': ('AC TEODORO SAMPAIO', 'CAE PPZ'), 'SVE3D04': ('AC TEODORO SAMPAIO', 'CAE PPZ'), 
@@ -5355,7 +5355,7 @@ placas_to_lotacao9 = {'BYY6C91': ('AC ADAMANTINA', 'CAE TUP'), 'DUQ9B41': ('AC A
                      'GIE9B87': ('CDD ARACATUBA', 'CAE ARC'), 'BWW9048': ('CDD ARACATUBA', 'CAE ARC'), 
                      'CKU8601': ('CDD ARACATUBA', 'CAE ARC'), 'DNU1631': ('CDD ARACATUBA', 'CAE ARC'), 
                      'ELE4G71': ('CDD ARACATUBA', 'CAE ARC'), 'EPT6183': ('CDD ARACATUBA', 'CAE ARC'), 
-                     'FMS7635': ('CDD ARACATUBA', 'CAE ARC'), 'FPD7233': ('CDD ARACATUBA', 'CAE ARC'), 
+                     'FMS7635': ('CDD ARACATUBA', 'CAE ARC'), 'FPD7233': ('CDD ARACATUBA', 'CAE ARC'), 'EJV8F41': ('CDD ARACATUBA', 'CAE ARC'), 
                      'CUL8F53': ('CDD BIRIGUI', 'CAE ARC'), 'DKZ2691': ('CDD BIRIGUI', 'CAE ARC'), 'EBD3111': ('CDD BIRIGUI', 'CAE ARC'), 
                      'EOF0H11': ('CDD BIRIGUI', 'CAE ARC'), 'FCO3I61': ('CDD BIRIGUI', 'CAE ARC'), 'FIH0D32': ('CDD BIRIGUI', 'CAE ARC'), 
                      'FSL3J21': ('CDD BIRIGUI', 'CAE ARC'), 'SSW8H30': ('CDD BIRIGUI', 'CAE ARC'), 'FYY6J21': ('CDD BIRIGUI', 'CAE ARC'), 
@@ -8205,5 +8205,6 @@ placas_mobi9 = {"GDN6E61", "FFD2E31", "FZR2E06", "FIN4G03", "FVC9J65", "GHR4A76"
  "GEY5I85", "CUK3A55", "BYK7B55", "BZB0C83", "EVI1D05", "FZX0C65"
 
 }
+
 
 
