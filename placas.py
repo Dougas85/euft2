@@ -20,7 +20,7 @@ placas_especificas2 = {
     'CUJ1H32', 'EXN9C84', 'GEZ2E14', 'GJV3J83', 'SSW8H30', 'DQZ3E01', 'GCF3E16', 'GDC3B93',
     'GFE1G42', 'SUE2D85', 'SVV2G65', 'BXZ8E24', 'BYI3D16', 'ECU6E19', 'FCR2F63',
     'FFN2H85', 'FNY3J82', 'FOK7D72', 'FVT3E84', 'FVY9B66', 'FXP5C56', 'GBL5C12', 'SUB1G38',
-    'SVL5B75', 'SVL9E23', 'SVQ0B02', 'SVV3F36', 'GFE1G42', 'CUL8F53'
+    'SVL5B75', 'SVL9E23', 'SVQ0B02', 'SVV3F36', 'GFE1G42', 'CUL8F53', 'DWN9F02' 
 }
 
 # Lista de placas MOBI
@@ -174,7 +174,7 @@ placas_to_lotacao2 = {'BYY6C91': ('AC ADAMANTINA', 'CAE TUP'), 'DUQ9B41': ('AC A
                      'FHS6635': ('CDD VILA MARCONDES', 'CAE PPZ'), 'GFV8726': ('CDD VILA MARCONDES', 'CAE PPZ'), 
                      'SUB1G38': ('CDD VILA MARCONDES', 'CAE PPZ'), 'SVL5B75': ('CDD VILA MARCONDES', 'CAE PPZ'), 
                      'SVL9E23': ('CDD VILA MARCONDES', 'CAE PPZ'), 'SVQ0B02': ('CDD VILA MARCONDES', 'CAE PPZ'), 
-                     'SVV3F36': ('CDD VILA MARCONDES', 'CAE PPZ')} 
+                     'SVV3F36': ('CDD VILA MARCONDES', 'CAE PPZ'), 'DWN9F02': ('CDD VILA MARCONDES', 'CAE PPZ')} 
                                                                                                                    
 
 placas_analisadas7 = {'GBS7H91',
@@ -4909,7 +4909,7 @@ placas_analisadas9 = {
 }
 placas_especificas9 = {
     'BYY6C91', 'SSV9F54', 'SSW2J17', 'SSX2G21', 'SVD6C35', 'FTP6G23', 'GEO4A61', 'STU4F87',
-    'FTU6A14', 'STY2C05', 'GAO8E14', 'SSV6B04', 'BYI7757',
+    'FTU6A14', 'STY2C05', 'GAO8E14', 'SSV6B04', 'BYI7757', 'DWN9F02',
     'GDT3E14', 'FYG9A32', 'SVE5C87', 'SWP2F95', 'GBX7E84', 'SSX4B17',
     'SSW4F26', 'TIQ9B00', 'FXT4I65', 'CAG0F76', 'GDI0F31',
     'TIT2E62', 'GAF7I04', 'SST6E95', 'SSU5H30', 'GEB9I03', 'GJT2B76',
@@ -5391,7 +5391,7 @@ placas_to_lotacao9 = {'BYY6C91': ('AC ADAMANTINA', 'CAE TUP'), 'DUQ9B41': ('AC A
                      'GDC3B93': ('CDD VILA MARCONDES', 'CAE PPZ'), 'GFE1G42': ('CDD VILA MARCONDES', 'CAE PPZ'), 
                      'SUE2D85': ('CDD VILA MARCONDES', 'CAE PPZ'), 'SVV2G65': ('CDD VILA MARCONDES', 'CAE PPZ'),
                      'BXZ8E24': ('CDD VILA MARCONDES', 'CAE PPZ'), 'BYI3D16': ('CDD VILA MARCONDES', 'CAE PPZ'), 
-                     'ECU6E19': ('CDD VILA MARCONDES', 'CAE PPZ'), 
+                     'ECU6E19': ('CDD VILA MARCONDES', 'CAE PPZ'), 'DWN9F002': ('CDD VILA MARCONDES', 'CAE PPZ'),
                      'FCR2F63': ('CDD VILA MARCONDES', 'CAE PPZ'), 'FFN2H85': ('CDD VILA MARCONDES', 'CAE PPZ'), 
                      'FNY3J82': ('CDD VILA MARCONDES', 'CAE PPZ'), 'FOK7D72': ('CDD VILA MARCONDES', 'CAE PPZ'), 
                      'FVT3E84': ('CDD VILA MARCONDES', 'CAE PPZ'), 'FVY9B66': ('CDD VILA MARCONDES', 'CAE PPZ'), 
@@ -8205,4 +8205,5 @@ placas_mobi9 = {"GDN6E61", "FFD2E31", "FZR2E06", "FIN4G03", "FVC9J65", "GHR4A76"
  "GEY5I85", "CUK3A55", "BYK7B55", "BZB0C83", "EVI1D05", "FZX0C65"
 
 }
+
 
