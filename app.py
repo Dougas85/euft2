@@ -660,6 +660,38 @@ def index():
                 <td><span class='badge bg-warning text-dark'>Sem saída</span></td>
             </tr>
             """
+
+        # Criar DataFrame para exportação dos veículos sem saída
+        sem_saida_data = []
+        for placa in placas_faltantes:
+            valores = placas_to_lotacao.get(placa)
+
+            if isinstance(valores, str):
+                partes = valores.split(" - ")
+                lotacao_patrimonial = partes[0]
+                CAE = partes[1] if len(partes) > 1 else ""
+            elif isinstance(valores, (list, tuple)):
+                lotacao_patrimonial = valores[0] if len(valores) > 0 else ""
+                CAE = valores[1] if len(valores) > 1 else ""
+            else:
+                lotacao_patrimonial = ""
+                CAE = ""
+
+            sem_saida_data.append({
+                'Placa': placa,
+                'Lotação Patrimonial': lotacao_patrimonial,
+                'CAE': CAE,
+                'Status': 'Sem saída'
+            })
+
+        sem_saida_df = pd.DataFrame(sem_saida_data)
+
+        # Salvar os arquivos temporários
+        temp_csv_path_sem_saida = os.path.join(tempfile.gettempdir(), "sem_saida_euft.csv")
+        temp_excel_path_sem_saida = os.path.join(tempfile.gettempdir(), "sem_saida_euft.xlsx")
+        sem_saida_df.to_csv(temp_csv_path_sem_saida, index=False, sep=';', encoding='utf-8-sig')
+        sem_saida_df.to_excel(temp_excel_path_sem_saida, index=False)
+
     
         veiculos_sem_retorno_data = []
 
@@ -750,6 +782,8 @@ def index():
                             veiculos_sem_retorno_data=veiculos_sem_retorno_data,
                             link_csv='/download/erros_csv',
                             link_excel='/download/erros_excel',
+                            link_csv_sem_saida='/download/sem_saida_csv',
+                            link_excel_sem_saida='/download/sem_saida_excel',
                             regioes=regioes,
                             region_selecionada=region,
                             deficit_html=deficit_html)
@@ -767,8 +801,7 @@ def download_erros_csv():
 def download_erros_excel():
     temp_excel_path = os.path.join(tempfile.gettempdir(), "erros_euft.xlsx")
     return send_file(temp_excel_path, as_attachment=True, download_name="Erros_EUFT.xlsx")
-
-"""@app.route('/download/sem_saida_csv')
+@app.route('/download/sem_saida_csv')
 def download_sem_saida_csv():
     temp_csv_path = os.path.join(tempfile.gettempdir(), "sem_saida_euft.csv")
     return send_file(temp_csv_path, as_attachment=True, download_name="Sem_Saida_EUFT.csv")
@@ -776,8 +809,9 @@ def download_sem_saida_csv():
 @app.route('/download/sem_saida_excel')
 def download_sem_saida_excel():
     temp_excel_path = os.path.join(tempfile.gettempdir(), "sem_saida_euft.xlsx")
-    return send_file(temp_excel_path, as_attachment=True, download_name="Sem_Saida_EUFT.xlsx")"""
+    return send_file(temp_excel_path, as_attachment=True, download_name="Sem_Saida_EUFT.xlsx")
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
+
 
