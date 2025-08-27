@@ -122,8 +122,8 @@ placas_to_lotacao2 = {'BYY6C91': ('AC ADAMANTINA', 'CAE TUP'), 'DUQ9B41': ('AC A
                      'EHX0332': ('CDD ANDRADINA ', 'CAE DRA'), 'FOO6I81': ('CDD ANDRADINA ', 'CAE DRA'),  
                      'SSX4G51': ('CDD ANDRADINA ', 'CAE DRA'), 'STL8F48': ('CDD ANDRADINA ', 'CAE DRA'), 
                      'SVE5C87': ('CDD ANDRADINA ', 'CAE DRA'), 'SSU9E50': ('CDD ANDRADINA ', 'CAE DRA'),
-                     'BQU9J42': ('CDD ARACATUBA ', 'CAE ARC'), 
-                     'BSW5E97': ('CDD ARACATUBA ', 'CAE ARC'), 'CUF4B12': ('CDD ARACATUBA', 'CAE ARC'), 
+                     'BQU9J42': ('CDD ARACATUBA', 'CAE ARC'), 
+                     'BSW5E97': ('CDD ARACATUBA', 'CAE ARC'), 'CUF4B12': ('CDD ARACATUBA', 'CAE ARC'), 
                      'ECZ3I77': ('CDD ARACATUBA', 'CAE ARC'), 'ENU8I04': ('CDD ARACATUBA', 'CAE ARC'), 
                      'FQG9F27': ('CDD ARACATUBA', 'CAE ARC'), 'FUO6G87': ('CDD ARACATUBA', 'CAE ARC'), 
                      'GIE9B87': ('CDD ARACATUBA', 'CAE ARC'), 'BWW9048': ('CDD ARACATUBA', 'CAE ARC'), 
@@ -5347,8 +5347,8 @@ placas_to_lotacao9 = {'BYY6C91': ('AC ADAMANTINA', 'CAE TUP'), 'DUQ9B41': ('AC A
                      'GBZ5E96': ('AC COROADOS', 'CAE ARC'),
                      'SSU9E50': ('CDD ANDRADINA ', 'CAE DRA'), 
                      'SSX4G51': ('CDD ANDRADINA ', 'CAE DRA'), 'STL8F48': ('CDD ANDRADINA ', 'CAE DRA'), 
-                     'SVE5C87': ('CDD ANDRADINA ', 'CAE DRA'), 'BQU9J42': ('CDD ARACATUBA ', 'CAE ARC'), 
-                     'BSW5E97': ('CDD ARACATUBA ', 'CAE ARC'), 'CUF4B12': ('CDD ARACATUBA', 'CAE ARC'), 
+                     'SVE5C87': ('CDD ANDRADINA ', 'CAE DRA'), 'BQU9J42': ('CDD ARACATUBA', 'CAE ARC'), 
+                     'BSW5E97': ('CDD ARACATUBA', 'CAE ARC'), 'CUF4B12': ('CDD ARACATUBA', 'CAE ARC'), 
                      'ECZ3I77': ('CDD ARACATUBA', 'CAE ARC'), 'ENU8I04': ('CDD ARACATUBA', 'CAE ARC'), 
                      'FQG9F27': ('CDD ARACATUBA', 'CAE ARC'), 'FUO6G87': ('CDD ARACATUBA', 'CAE ARC'), 
                      'GIE9B87': ('CDD ARACATUBA', 'CAE ARC'), 'BWW9048': ('CDD ARACATUBA', 'CAE ARC'), 
@@ -8203,6 +8203,7 @@ placas_mobi9 = {"GDN6E61", "FFD2E31", "FZR2E06", "FIN4G03", "FVC9J65", "GHR4A76"
  "GEY5I85", "CUK3A55", "BYK7B55", "BZB0C83", "EVI1D05", "FZX0C65"
 
 }
+
 
 
 
