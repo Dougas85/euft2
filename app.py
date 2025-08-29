@@ -297,6 +297,17 @@ def calcular_euft(df, dias_uteis_mes, placas_scudo, placas_especificas, placas_m
     # 10) Retornar também os erros
     df_erros = df_agrupado[~df_agrupado['Correto']].copy()
 
+    # 🔹 Ajuste: remover erros onde todas as colunas de distrito/LCE/LTU estão em branco
+    condicao_preenchido = (
+        df_erros['Nº Distrito'].notna() & (df_erros['Nº Distrito'].astype(str).str.strip() != "")
+    ) | (
+        df_erros['Nº LCE'].notna() & (df_erros['Nº LCE'].astype(str).str.strip() != "")
+    ) | (
+        df_erros['Nº LTU'].notna() & (df_erros['Nº LTU'].astype(str).str.strip() != "")
+    )
+
+    df_erros = df_erros[condicao_preenchido].copy()
+
     return resultados_por_veiculo, df_erros
 
 def veiculos_sem_retorno(df1, placas_analisadas):
@@ -813,5 +824,6 @@ def download_sem_saida_excel():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
+
 
 
