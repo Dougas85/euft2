@@ -107,10 +107,6 @@ regioes['SPI'] = {
     'placas_to_lotacao': list(set(chain.from_iterable(r['placas_to_lotacao'] for r in regioes.values()))),
 }
 
-
-
-
-
 # Função para calcular o tempo de utilização
 def calcular_tempo_utilizacao(row):
     try:
@@ -297,17 +293,6 @@ def calcular_euft(df, dias_uteis_mes, placas_scudo, placas_especificas, placas_m
     # 10) Retornar também os erros
     df_erros = df_agrupado[~df_agrupado['Correto']].copy()
 
-    # 🔹 Ajuste: remover erros onde todas as colunas de distrito/LCE/LTU estão em branco
-    condicao_preenchido = (
-        df_erros['Nº Distrito'].notna() & (df_erros['Nº Distrito'].astype(str).str.strip() != "")
-    ) | (
-        df_erros['Nº LCE'].notna() & (df_erros['Nº LCE'].astype(str).str.strip() != "")
-    ) | (
-        df_erros['Nº LTU'].notna() & (df_erros['Nº LTU'].astype(str).str.strip() != "")
-    )
-
-    df_erros = df_erros[condicao_preenchido].copy()
-
     return resultados_por_veiculo, df_erros
 
 def veiculos_sem_retorno(df1, placas_analisadas):
@@ -329,8 +314,6 @@ def veiculos_sem_retorno(df1, placas_analisadas):
    # print("Placas analisadas:", placas_analisadas[:5])
    # print("Placas únicas no df1:", df1['Placa'].unique()[:5])
    # print("Placas em comum:", df1['Placa'].isin(placas_analisadas).sum())
-
-
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -824,6 +807,7 @@ def download_sem_saida_excel():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
+
 
 
 
