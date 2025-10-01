@@ -77,7 +77,7 @@ placas_to_lotacao2 = {'BYY6C91': ('AC ADAMANTINA', 'CAE TUP'), 'DUQ9B41': ('AC A
                      'FIG3F11': ('AC GUARACAI', 'CAE DRA'), 'FQN3E51': ('AC GUARARAPES', 'CAE ARC'), 
                      'FUH6A71': ('AC GUARARAPES', 'CAE ARC'), 'FYG9A32': ('AC GUARARAPES', 'CAE ARC'), 
                      'SWP2F95': ('AC GUARARAPES', 'CAE ARC'), 'EEV5891': ('AC GUARARAPES', 'CAE ARC'), 
-                     'FYW2E51': ('AC GUARARAPES', 'CAE ARC'), 'FIN4G03': ('AC HERCULANDIA', 'CAE TUP'), 
+                     'FYW2E51': ('AC GUARARAPES', 'CAE ARC'), 'FIN4G03': ('AC IRAPURU', 'CAE DRA'), 
                      'FVC9J65': ('AC IACRI', 'CAE TUP'), 'FNW5B31': ('AC INDIANA', 'CAE PPE'), 
                      'BVM9F41': ('AC INUBIA PAULISTA', 'CAE TUP'), 'GBX7E84': ('AC IRAPURU', 'CAE DRA'), 
                      'FIN5A81': ('AC JUNQUEIROPOLIS', 'CAE DRA'), 'SSX4B17': ('AC JUNQUEIROPOLIS', 'CAE DRA'), 
@@ -5301,7 +5301,7 @@ placas_to_lotacao9 = {'BYY6C91': ('AC ADAMANTINA', 'CAE TUP'), 'DUQ9B41': ('AC A
                      'FIG3F11': ('AC GUARACAI', 'CAE DRA'), 'FQN3E51': ('AC GUARARAPES', 'CAE ARC'), 
                      'FUH6A71': ('AC GUARARAPES', 'CAE ARC'), 'FYG9A32': ('AC GUARARAPES', 'CAE ARC'), 
                      'SWP2F95': ('AC GUARARAPES', 'CAE ARC'), 'EEV5891': ('AC GUARARAPES', 'CAE ARC'), 
-                     'FYW2E51': ('AC GUARARAPES', 'CAE ARC'), 'FIN4G03': ('AC HERCULANDIA', 'CAE TUP'), 
+                     'FYW2E51': ('AC GUARARAPES', 'CAE ARC'), 'FIN4G03': ('AC IRAPURU', 'CAE DRA'), 
                      'FVC9J65': ('AC IACRI', 'CAE TUP'), 'FNW5B31': ('AC INDIANA', 'CAE PPE'), 
                      'BVM9F41': ('AC INUBIA PAULISTA', 'CAE TUP'), 'GBX7E84': ('AC IRAPURU', 'CAE DRA'), 
                      'FIN5A81': ('AC JUNQUEIROPOLIS', 'CAE DRA'), 'SSX4B17': ('AC JUNQUEIROPOLIS', 'CAE DRA'), 
@@ -8203,6 +8203,7 @@ placas_mobi9 = {"GDN6E61", "FFD2E31", "FZR2E06", "FIN4G03", "FVC9J65", "GHR4A76"
  "GEY5I85", "CUK3A55", "BYK7B55", "BZB0C83", "EVI1D05", "FZX0C65"
 
 }
+
 
 
 
