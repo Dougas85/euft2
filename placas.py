@@ -79,7 +79,7 @@ placas_to_lotacao2 = {'BYY6C91': ('AC ADAMANTINA', 'CAE TUP'), 'DUQ9B41': ('AC A
                      'SWP2F95': ('AC GUARARAPES', 'CAE ARC'), 'EEV5891': ('AC GUARARAPES', 'CAE ARC'), 
                      'FYW2E51': ('AC GUARARAPES', 'CAE ARC'), 'FIN4G03': ('AC IRAPURU', 'CAE DRA'), 
                      'FVC9J65': ('AC IACRI', 'CAE TUP'), 'FNW5B31': ('AC INDIANA', 'CAE PPE'), 
-                     'BVM9F41': ('AC INUBIA PAULISTA', 'CAE TUP'), 'GBX7E84': ('AC IRAPURU', 'CAE DRA'), 
+                     'BVM9F41': ('AC INUBIA PAULISTA', 'CAE TUP'), 'GBX7E84': ('AC HERCULANDIA', 'CAE TUP'), 
                      'FIN5A81': ('AC JUNQUEIROPOLIS', 'CAE DRA'), 'SSX4B17': ('AC JUNQUEIROPOLIS', 'CAE DRA'), 
                      'GHR4A76': ('AC JUNQUEIROPOLIS', 'CAE DRA'), 'GCK3A92': ('AC LAVINIA', 'CAE ARC'), 
                      'DMW4E81': ('AC LUCELIA', 'CAE TUP'), 'GDY0I71': ('AC LUCELIA', 'CAE TUP'), 'SSW4F26': ('AC LUCELIA', 'CAE TUP'), 
@@ -93,7 +93,7 @@ placas_to_lotacao2 = {'BYY6C91': ('AC ADAMANTINA', 'CAE TUP'), 'DUQ9B41': ('AC A
                      'FWQ3H51': ('CDD OSVALDO CRUZ', 'CAE TUP'), 
                      'GAF7I04': ('CDD OSVALDO CRUZ', 'CAE TUP'), 'SST6E95': ('CDD OSVALDO CRUZ', 'CAE TUP'), 
                      'SSU5H30': ('CDD OSVALDO CRUZ', 'CAE TUP'), 'FUK9H76': ('AC OURO VERDE', 'CAE DRA'), 
-                     'DSL8C81': ('AC PACAEMBU', 'CAE DRA '), 'GIQ7H41': ('AC PACAEMBU', 'CAE DRA'), 'GEB9I03': ('AC PANORAMA', 'CAE DRA'), 
+                     'DSL8C81': ('AC PACAEMBU', 'CAE TUP '), 'GIQ7H41': ('AC PACAEMBU', 'CAE TUP'), 'GEB9I03': ('AC PANORAMA', 'CAE DRA'), 
                      'GJT2B76': ('AC PANORAMA', 'CAE DRA'), 'GHG9A31': ('AC PARAPUA', 'CAE TUP'), 'GDY7J34': ('AC PARAPUA', 'CAE TUP'), 
                      'CPG1J41': ('AC PAULICEIA', 'CAE DRA'), 'EAH5B61': ('AC PIACATU', 'CAE ARC'), 'DZI9H91': ('AC PIRAPOZINHO', 'CAE PPZ'), 
                      'ELW1J81': ('AC PIRAPOZINHO', 'CAE PPZ'), 'GHM5G01': ('AC PIRAPOZINHO', 'CAE PPZ'), 
@@ -5305,7 +5305,7 @@ placas_to_lotacao9 = {'BYY6C91': ('AC ADAMANTINA', 'CAE TUP'), 'DUQ9B41': ('AC A
                      'SWP2F95': ('AC GUARARAPES', 'CAE ARC'), 'EEV5891': ('AC GUARARAPES', 'CAE ARC'), 
                      'FYW2E51': ('AC GUARARAPES', 'CAE ARC'), 'FIN4G03': ('AC IRAPURU', 'CAE DRA'), 
                      'FVC9J65': ('AC IACRI', 'CAE TUP'), 'FNW5B31': ('AC INDIANA', 'CAE PPE'), 
-                     'BVM9F41': ('AC INUBIA PAULISTA', 'CAE TUP'), 'GBX7E84': ('AC IRAPURU', 'CAE DRA'), 
+                     'BVM9F41': ('AC INUBIA PAULISTA', 'CAE TUP'), 'GBX7E84': ('AC HERCULANDIA', 'CAE DRA'), 
                      'FIN5A81': ('AC JUNQUEIROPOLIS', 'CAE DRA'), 'SSX4B17': ('AC JUNQUEIROPOLIS', 'CAE DRA'), 
                      'GHR4A76': ('AC JUNQUEIROPOLIS', 'CAE DRA'), 'GCK3A92': ('AC LAVINIA', 'CAE ARC'), 
                      'DMW4E81': ('AC LUCELIA', 'CAE TUP'), 'GDY0I71': ('AC LUCELIA', 'CAE TUP'), 'SSW4F26': ('AC LUCELIA', 'CAE TUP'), 
@@ -5319,7 +5319,7 @@ placas_to_lotacao9 = {'BYY6C91': ('AC ADAMANTINA', 'CAE TUP'), 'DUQ9B41': ('AC A
                      'FWQ3H51': ('CDD OSVALDO CRUZ', 'CAE TUP'), 
                      'GAF7I04': ('CDD OSVALDO CRUZ', 'CAE TUP'), 'SST6E95': ('CDD OSVALDO CRUZ', 'CAE TUP'), 
                      'SSU5H30': ('CDD OSVALDO CRUZ', 'CAE TUP'), 'FUK9H76': ('AC OURO VERDE', 'CAE DRA'), 
-                     'DSL8C81': ('AC PACAEMBU', 'CAE DRA '), 'GIQ7H41': ('AC PACAEMBU', 'CAE DRA'), 'GEB9I03': ('AC PANORAMA', 'CAE DRA'), 
+                     'DSL8C81': ('AC PACAEMBU', 'CAE TUP '), 'GIQ7H41': ('AC PACAEMBU', 'CAE TUP'), 'GEB9I03': ('AC PANORAMA', 'CAE DRA'), 
                      'GJT2B76': ('AC PANORAMA', 'CAE DRA'), 'GHG9A31': ('AC PARAPUA', 'CAE TUP'), 'GDY7J34': ('AC PARAPUA', 'CAE TUP'), 
                      'CPG1J41': ('AC PAULICEIA', 'CAE DRA'), 'EAH5B61': ('AC PIACATU', 'CAE ARC'), 'DZI9H91': ('AC PIRAPOZINHO', 'CAE PPZ'), 
                      'ELW1J81': ('AC PIRAPOZINHO', 'CAE PPZ'), 'GHM5G01': ('AC PIRAPOZINHO', 'CAE PPZ'), 
@@ -8206,6 +8206,7 @@ placas_mobi9 = {"GDN6E61", "FFD2E31", "FZR2E06", "FIN4G03", "FVC9J65", "GHR4A76"
  "GEY5I85", "CUK3A55", "BYK7B55", "BZB0C83", "EVI1D05", "FZX0C65"
 
 }
+
 
 
 
