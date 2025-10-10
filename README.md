@@ -138,9 +138,9 @@ Acesse no navegador:
 
 O sistema calcula o **EUFT** (Efetividade na Utilização da Frota de Transporte) como:
 
-\[
-EUFT = \frac{\text{Lançamentos Corretos}}{\text{Lançamentos Totais} + \text{Adicional}}
-\]
+
+EUFT = {Lançamentos Corretos}/{Lançamentos Totais} + {Adicional}
+
 
 Cada **dia** e **placa** são analisados individualmente.  
 Os lançamentos são verificados quanto a:
