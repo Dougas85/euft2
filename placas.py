@@ -139,7 +139,7 @@ placas_to_lotacao2 = {'BYY6C91': ('AC ADAMANTINA', 'CAE TUP'), 'DUQ9B41': ('AC A
                      'DST5621': ('CDD BIRIGUI', 'CAE ARC'), 'ECE0822': ('CDD BIRIGUI', 'CAE ARC'), 'FII9D21': ('CDD BIRIGUI', 'CAE ARC'), 
                      'FTQ0114': ('CDD BIRIGUI', 'CAE ARC'), 'GDT3E14': ('CDD BIRIGUI', 'CAE ARC'), 'SUY7J13': ('CDD BIRIGUI', 'CAE ARC'),
                      'CTC2I01': ('CDD DRACENA', 'CAE DRA'), 'EIV9A31': ('CDD DRACENA', 'CAE DRA'), 'EUW1E31': ('CDD DRACENA', 'CAE DRA'), 
-                     'FJK3C11': ('CDD DRACENA', 'CAE DRA'), 'CUH8E73': ('CDD DRACENA', 'CAE DRA'), 'SST2C29': ('CDD DRACENA', 'CAE DRA'), 
+                     'FJK3C11': ('CDD DRACENA', 'CAE DRA'), 'CUH8E73': ('CDD DRACENA', 'CAE DRA'), 'SST2C29': ('AC IRAPURU', 'CAE DRA'), 
                      'SSX9H56': ('CDD DRACENA', 'CAE DRA'), 'SWN1E65': ('CDD DRACENA', 'CAE DRA'), 
                      'FMJ9C42': ('CDD PENAPOLIS', 'CAE ARC'), 'GAA6C27': ('CDD PENAPOLIS', 'CAE ARC'), 'GBP4G17': ('CDD PENAPOLIS', 'CAE ARC'), 
                      'GDQ3J47': ('CDD PENAPOLIS', 'CAE ARC'), 'FIL4B51': ('CDD PENAPOLIS', 'CAE ARC'), 'SUA7J06': ('CDD PENAPOLIS', 'CAE ARC'), 
@@ -5366,7 +5366,7 @@ placas_to_lotacao9 = {'BYY6C91': ('AC ADAMANTINA', 'CAE TUP'), 'DUQ9B41': ('AC A
                      'DST5621': ('CDD BIRIGUI', 'CAE ARC'), 'ECE0822': ('CDD BIRIGUI', 'CAE ARC'), 'FII9D21': ('CDD BIRIGUI', 'CAE ARC'), 
                      'FTQ0114': ('CDD BIRIGUI', 'CAE ARC'), 'GDT3E14': ('CDD BIRIGUI', 'CAE ARC'), 'SUY7J13': ('CDD BIRIGUI', 'CAE ARC'),
                      'CTC2I01': ('CDD DRACENA', 'CAE DRA'), 'EIV9A31': ('CDD DRACENA', 'CAE DRA'), 'EUW1E31': ('CDD DRACENA', 'CAE DRA'), 
-                     'FJK3C11': ('CDD DRACENA', 'CAE DRA'), 'CUH8E73': ('CDD DRACENA', 'CAE DRA'), 'SST2C29': ('CDD DRACENA', 'CAE DRA'), 
+                     'FJK3C11': ('CDD DRACENA', 'CAE DRA'), 'CUH8E73': ('CDD DRACENA', 'CAE DRA'), 'SST2C29': ('AC IRAPURU', 'CAE DRA'), 
                      'SSX9H56': ('CDD DRACENA', 'CAE DRA'), 'SWN1E65': ('CDD DRACENA', 'CAE DRA'),  
                      'FMJ9C42': ('CDD PENAPOLIS', 'CAE ARC'), 'GAA6C27': ('CDD PENAPOLIS', 'CAE ARC'), 'GBP4G17': ('CDD PENAPOLIS', 'CAE ARC'), 
                      'GDQ3J47': ('CDD PENAPOLIS', 'CAE ARC'), 'FIL4B51': ('CDD PENAPOLIS', 'CAE ARC'), 'SUA7J06': ('CDD PENAPOLIS', 'CAE ARC'), 
@@ -8206,6 +8206,7 @@ placas_mobi9 = {"GDN6E61", "FFD2E31", "FZR2E06", "FIN4G03", "FVC9J65", "GHR4A76"
  "GEY5I85", "CUK3A55", "BYK7B55", "BZB0C83", "EVI1D05", "FZX0C65"
 
 }
+
 
 
 
