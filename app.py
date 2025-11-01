@@ -483,11 +483,6 @@ def index():
             deficit_count = (deficit_df[dias_cols] > 0).sum(axis=1)
             total_dias = len(dias_cols)
 
-
-            # Conta quantos dias com déficit > 0
-            deficit_count = (deficit_df[dias_cols] > 0).sum(axis=1)
-            total_dias = len(dias_cols)
-
             # Define classe com base nos critérios:
             def classificar_linha(dias_com_deficit):
                 if dias_com_deficit == total_dias:
@@ -790,7 +785,7 @@ def index():
 
         return render_template('index.html',
                             resultados=resultados_html,
-                            eptc_resultado=media_geral_euft_percentual,
+                            eptc_resultado=media_geral_euft_formatado,
                             erros=erros_html,
                             grafico_labels=json.dumps(labels),
                             grafico_dados=json.dumps(valores),
@@ -844,6 +839,7 @@ def download_resultados_excel():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
+
 
 
 
