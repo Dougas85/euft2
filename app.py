@@ -321,8 +321,8 @@ def index():
     region = None
 
     # Adicione estas linhas:
-    card_euptc_html = ""  # garante que a variável sempre exista
-    euptc_geral_formatado = "0,00%"  # valor padrão caso não haja cálculo
+    card_euft_html = ""  # garante que a variável sempre exista
+    euft_geral_formatado = "0,00%"  # valor padrão caso não haja cálculo
 
     # Inicializa variáveis de resultado com valores padrão
     media_geral_euft_formatado = "0,00"
@@ -613,7 +613,7 @@ def index():
             resultados_html += f"<tr><td>{i + 1}</td><td>{row['Placa']}</td><td>{row['lotacao_patrimonial']}</td><td>{row['Dias_Corretos']}</td><td>{row['Dias_Totais']}</td><td>{row['Adicional']}</td><td>{euft_percent}</td></tr>"
         
         # =========================
-        # RESULTADOS POR UNIDADE E EPTC GERAL
+        # RESULTADOS POR UNIDADE  EUFT GERAL
         # =========================
         
         # Agrupa por lotação patrimonial para obter totais
@@ -624,23 +624,23 @@ def index():
             'EUFT': 'mean'           # EUFT médio por unidade (média dos veículos)
         }).reset_index()
         
-        # Calcula EPTC por unidade usando a soma dos dias
-        resultados_por_unidade['EPTC_unidade'] = resultados_por_unidade.apply(
+        # Calcula EUFT por unidade usando a soma dos dias
+        resultados_por_unidade['EUFT_unidade'] = resultados_por_unidade.apply(
             lambda row: row['Dias_Corretos'] / (row['Dias_Totais'] + row['Adicional']) if (row['Dias_Totais'] + row['Adicional']) > 0 else 0,
             axis=1
         )
         
-        # EPTC médio geral: média dos EUFT individuais, não da média dos totais
-        eptc_geral = resultados_veiculo['EUFT'].mean() * 100
-        eptc_geral_formatado = f"{eptc_geral:.2f}".replace('.', ',') + '%'
+        # EUFT médio geral: média dos EUFT individuais, não da média dos totais
+        euft_geral = resultados_veiculo['EUFT'].mean() * 100
+        euft_geral_formatado = f"{euft_geral:.2f}".replace('.', ',') + '%'
 
         
-        # Monta HTML do card EPTC
-        card_eptc_html = f"""
+        # Monta HTML do card EUFT
+        card_euft_html = f"""
         <div class="card text-center shadow-lg border-0 mb-4" style="background-color:#003366; color:white;">
             <div class="card-body">
-                <h5 class="card-title fw-bold">EPTC</h5>
-                <p class="display-5 fw-bold text-warning">{eptc_geral_formatado}</p>
+                <h5 class="card-title fw-bold">EUFT</h5>
+                <p class="display-5 fw-bold text-warning">{euft_geral_formatado}</p>
                 <p class="mb-0">Eficiência Média Geral</p>
             </div>
         </div>
@@ -649,11 +649,11 @@ def index():
         # Monta HTML da tabela por unidade
         resultados_html = "<h3 class='mt-4'>Resultados por Unidade</h3>"
         resultados_html += "<table id='unidadeTable' class='table table-bordered table-striped mt-2'>"
-        resultados_html += "<thead><tr><th>Id</th><th>Lotação Patrimonial</th><th>Lançamentos Corretos</th><th>Lançamentos Totais</th><th>Adicional</th><th>EPTC Unidade</th></tr></thead><tbody>"
+        resultados_html += "<thead><tr><th>Id</th><th>Lotação Patrimonial</th><th>Lançamentos Corretos</th><th>Lançamentos Totais</th><th>Adicional</th><th>EUFT Unidade</th></tr></thead><tbody>"
         
         for i, row in resultados_por_unidade.iterrows():
-            eptc_unidade_percent = f"{row['EPTC_unidade'] * 100:.2f}".replace('.', ',') + '%'
-            resultados_html += f"<tr><td>{i+1}</td><td>{row['lotacao_patrimonial']}</td><td>{row['Dias_Corretos']}</td><td>{row['Dias_Totais']}</td><td>{row['Adicional']}</td><td>{eptc_unidade_percent}</td></tr>"
+            euft_unidade_percent = f"{row['EUFT_unidade'] * 100:.2f}".replace('.', ',') + '%'
+            resultados_html += f"<tr><td>{i+1}</td><td>{row['lotacao_patrimonial']}</td><td>{row['Dias_Corretos']}</td><td>{row['Dias_Totais']}</td><td>{row['Adicional']}</td><td>{euft_unidade_percent}</td></tr>"
         
         resultados_html += "</tbody></table>"
         
@@ -815,8 +815,8 @@ def index():
 
         return render_template('index.html',
                             resultados=resultados_html,
-                            eptc_resultado=media_geral_euft_formatado,
-                            eptc_percentual=media_geral_euft_percentual,
+                            euft_resultado=media_geral_euft_formatado,
+                            euft_percentual=media_geral_euft_percentual,
                             erros=erros_html,
                             grafico_labels=json.dumps(labels),
                             grafico_dados=json.dumps(valores),
@@ -828,7 +828,7 @@ def index():
                             link_excel_sem_saida='/download/sem_saida_excel',
                             link_csv_resultados='/download/resultados_csv',
                             link_excel_resultados='/download/resultados_excel',
-                            card_euptc=card_euptc_html,
+                            card_euft=card_euft_html,
                             regioes=regioes,
                             region_selecionada=region,
                             deficit_html=deficit_html)
@@ -870,6 +870,7 @@ def download_resultados_excel():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
+
 
 
 
