@@ -21,11 +21,11 @@
     <div class="card-header text-center bg-primary text-white">
       <h4 class="mb-0">EUFT Diário</h4>
     </div>
-    {% if eptc_resultado %}
+    {% if euft_resultado %}
     <div class="card text-center shadow rounded-3 mt-4">
       <div class="card-body">
-        <h5 class="card-title text-primary">EPTC</h5>
-        <h2 class="fw-bold text-success">{{ eptc_resultado }}%</h2>
+        <h5 class="card-title text-primary">EUFT</h5>
+        <h2 class="fw-bold text-success">{{ euft_resultado }}%</h2>
       </div>
     </div>
     {% endif %}
@@ -126,7 +126,7 @@
 
     <div class="card-body">
 
-        <!-- Linha com botões e EPTC -->
+        <!-- Linha com botões e EUFT-->
         <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
             <!-- Botões de exportação -->
             <div>
@@ -138,12 +138,12 @@
                 </a>
             </div>
 
-            <!-- Card EPTC -->
-            {% if eptc_resultado %}
+            <!-- Card EUFT-->
+            {% if euft_resultado %}
             <div class="card text-white bg-primary shadow-sm" style="width: 14rem;">
                 <div class="card-body text-center">
-                    <h6 class="card-title mb-1">EPTC</h6>
-                    <h4 class="fw-bold">{{ eptc_resultado }}%</h4>
+                    <h6 class="card-title mb-1">EUFT</h6>
+                    <h4 class="fw-bold">{{ euft_resultado }}%</h4>
                 </div>
             </div>
             {% endif %}
@@ -650,6 +650,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 </body>
 </html>
+
 
 
 
