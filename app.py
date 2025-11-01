@@ -586,62 +586,80 @@ def index():
         if 'Correto' in erros.columns:
             erros = erros.drop(columns=['Correto'])
 
+        # ==========================================
+        # Preparar resultados por veículo
+        # ==========================================
         resultados_html = ""
+        
         def extrair_lotacao(val):
             if isinstance(val, str):
                 return val
             elif isinstance(val, (list, tuple)):
                 return val[0] if len(val) > 0 else ''
             return ''
-
-        resultados_veiculo['lotacao_patrimonial'] = resultados_veiculo['Placa'].map(lambda p: extrair_lotacao(placas_to_lotacao.get(p)))
-
-
+        
+        # Mapear lotação patrimonial
+        resultados_veiculo['lotacao_patrimonial'] = resultados_veiculo['Placa'].map(
+            lambda p: extrair_lotacao(placas_to_lotacao.get(p))
+        )
+        
+        # Tabela HTML por veículo (opcional, pode usar para exportação)
         for i, row in resultados_veiculo.iterrows():
             euft_percent = f"{row['EUFT'] * 100:.2f}".replace('.', ',') + '%'
             resultados_html += f"<tr><td>{i + 1}</td><td>{row['Placa']}</td><td>{row['lotacao_patrimonial']}</td><td>{row['Dias_Corretos']}</td><td>{row['Dias_Totais']}</td><td>{row['Adicional']}</td><td>{euft_percent}</td></tr>"
-
+        
+        # ==========================================
+        # Agrupar resultados por unidade
+        # ==========================================
         resultados_por_unidade = resultados_veiculo.groupby('lotacao_patrimonial').agg({
             'Dias_Corretos': 'sum',
             'Dias_Totais': 'sum',
-            'Adicional': 'sum',
-            'EUFT': 'mean'
-        }).reset_index().sort_values(by='EUFT', ascending=False)
-
-        resultados_html += "<h3 class='mt-4'>Resultados</h3>"
-        resultados_html += "<table id='unidadeTable' class='table table-bordered table-striped mt-2'>"
-        resultados_html += "<thead><tr><th>Id</th><th>Lotação Patrimonial</th><th>Lançamentos Corretos</th><th>Lançamentos Totais</th><th>Adicional</th><th>EUFT Médio</th></tr></thead><tbody>"
-
-        for i, row in resultados_por_unidade.iterrows():
-            euft_unidade_percent = f"{row['EUFT'] * 100:.2f}".replace('.', ',') + '%'
-            resultados_html += f"<tr><td>{i + 1}</td><td>{row['lotacao_patrimonial']}</td><td>{row['Dias_Corretos']}</td><td>{row['Dias_Totais']}</td><td>{row['Adicional']}</td><td>{euft_unidade_percent}</td></tr>"
-
-        resultados_html += "</tbody></table>"
-
-        # NOVO: Calcular o EPTC (EUFT geral)
-        euptc_geral = resultados_veiculo["EUFT"].mean() * 100
-        euptc_geral_formatado = f"{euptc_geral:.2f}".replace('.', ',') + '%'
+            'Adicional': 'sum'
+        }).reset_index().sort_values(by='Dias_Corretos', ascending=False)
         
-        # NOVO: Gerar DataFrame de resultados para exportação
-        resultados_export_df = resultados_veiculo.copy()
-        resultados_export_df['EUFT (%)'] = resultados_export_df['EUFT'] * 100
-        temp_csv_path_resultados = os.path.join(tempfile.gettempdir(), "resultados_euft.csv")
-        temp_excel_path_resultados = os.path.join(tempfile.gettempdir(), "resultados_euft.xlsx")
-        resultados_export_df.to_csv(temp_csv_path_resultados, index=False, sep=';', encoding='utf-8-sig')
-        resultados_export_df.to_excel(temp_excel_path_resultados, index=False)
+        # Calcular EUFT por unidade
+        resultados_por_unidade['EUFT'] = resultados_por_unidade['Dias_Corretos'] / (resultados_por_unidade['Dias_Totais'] + resultados_por_unidade['Adicional'])
         
         # ==========================================
-        # NOVO: Montar o card do EPTC para exibir na página principal
+        # Calcular EPTC médio geral
         # ==========================================
-        card_euptc_html = f"""
+        # Evita divisão por zero
+        resultados_por_unidade['denominador'] = resultados_por_unidade['Dias_Totais'] + resultados_por_unidade['Adicional']
+        resultados_por_unidade['EPTC_unidade'] = resultados_por_unidade.apply(
+            lambda row: row['Dias_Corretos'] / row['denominador'] if row['denominador'] > 0 else 0,
+            axis=1
+        )
+        
+        # EPTC médio geral
+        eptc_geral = resultados_por_unidade['EPTC_unidade'].mean() * 100
+        eptc_geral_formatado = f"{eptc_geral:.2f}".replace('.', ',') + '%'
+        
+        # ==========================================
+        # Preparar card HTML do EPTC
+        # ==========================================
+        card_eptc_html = f"""
         <div class="card text-center shadow-lg border-0 mb-4" style="background-color:#003366; color:white;">
             <div class="card-body">
                 <h5 class="card-title fw-bold">EPTC</h5>
-                <p class="display-5 fw-bold text-warning">{euptc_geral_formatado}</p>
+                <p class="display-5 fw-bold text-warning">{eptc_geral_formatado}</p>
                 <p class="mb-0">Eficiência Média Geral</p>
             </div>
         </div>
         """
+        
+        # ==========================================
+        # Preparar DataFrame para exportação (CSV/Excel)
+        # ==========================================
+        resultados_export_df = resultados_por_unidade.copy()
+        resultados_export_df['EUFT (%)'] = resultados_export_df['EUFT'] * 100
+        
+        temp_csv_path_resultados = os.path.join(tempfile.gettempdir(), "resultados_euft.csv")
+        temp_excel_path_resultados = os.path.join(tempfile.gettempdir(), "resultados_euft.xlsx")
+        
+        resultados_export_df.to_csv(temp_csv_path_resultados, index=False, sep=';', encoding='utf-8-sig')
+        resultados_export_df.to_excel(temp_excel_path_resultados, index=False)
+
+
         
         erros_html = ""
         for i, row in erros.iterrows():
@@ -847,6 +865,7 @@ def download_resultados_excel():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
+
 
 
 
