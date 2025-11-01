@@ -621,7 +621,6 @@ def index():
             'Dias_Corretos': 'sum',  # lançamentos corretos
             'Dias_Totais': 'sum',    # lançamentos totais
             'Adicional': 'sum',      # adicional
-            'EUFT': 'mean'           # EUFT médio por unidade (média dos veículos)
         }).reset_index()
         
         # Calcula EUFT por unidade usando a soma dos dias
@@ -631,10 +630,9 @@ def index():
         )
         
         # EUFT médio geral: média dos EUFT individuais, não da média dos totais
-        euft_geral = resultados_veiculo['EUFT'].mean() * 100
+        euft_geral = resultados_por_unidade['EUFT_unidade'].mean() * 100
         euft_geral_formatado = f"{euft_geral:.2f}".replace('.', ',') + '%'
 
-        
         # Monta HTML do card EUFT
         card_euft_html = f"""
         <div class="card text-center shadow-lg border-0 mb-4" style="background-color:#003366; color:white;">
@@ -870,6 +868,7 @@ def download_resultados_excel():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
+
 
 
 
