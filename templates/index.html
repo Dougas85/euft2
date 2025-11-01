@@ -21,6 +21,15 @@
     <div class="card-header text-center bg-primary text-white">
       <h4 class="mb-0">EUFT Diário</h4>
     </div>
+    {% if eptc_resultado %}
+    <div class="card text-center shadow rounded-3 mt-4">
+      <div class="card-body">
+        <h5 class="card-title text-primary">EPTC</h5>
+        <h2 class="fw-bold text-success">{{ eptc_resultado }}%</h2>
+      </div>
+    </div>
+    {% endif %}
+
     <div class="card-body text-center">
       <form method="POST" enctype="multipart/form-data" class="d-flex flex-column align-items-center">
 
@@ -106,6 +115,10 @@
 
 <!-- Resultados -->
 {% if resultados %}
+<div id="botoesDownloadResultados" style="display: none;" class="mt-3 text-center">
+  <a href="/download/resultados_csv" class="btn btn-outline-success mx-1" target="_blank">Baixar CSV</a>
+  <a href="/download/resultados_excel" class="btn btn-outline-primary mx-1" target="_blank">Baixar Excel</a>
+</div>
 <div id="results" class="card table-card mt-3" style="display: none;">
     <div class="card-header text-center">
         <h4>Resultados</h4>
@@ -609,4 +622,5 @@ document.addEventListener('DOMContentLoaded', function () {
 
 </body>
 </html>
+
 
