@@ -320,6 +320,10 @@ def index():
     placas_to_lotacao = []
     region = None
 
+    # Inicializa variáveis de resultado com valores padrão
+    media_geral_euft_formatado = "0,00"
+    media_geral_euft_percentual = "0%"
+
     if request.method == 'POST':
         region = request.form.get('region')
 
@@ -788,8 +792,8 @@ def index():
 
         return render_template('index.html',
                             resultados=resultados_html,
-                            eptc_resultado=media_geral_euft_formatado if 'media_geral_euft_formatado' in locals() else "0,00",
-                            eptc_percentual=media_geral_euft_percentual if 'media_geral_euft_percentual' in locals() else "0%",
+                            eptc_resultado=media_geral_euft_formatado,
+                            eptc_percentual=media_geral_euft_percentual,
                             erros=erros_html,
                             grafico_labels=json.dumps(labels),
                             grafico_dados=json.dumps(valores),
@@ -843,6 +847,7 @@ def download_resultados_excel():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
+
 
 
 
