@@ -634,9 +634,18 @@ def index():
             axis=1
         )
         
-        # EPTC médio geral
-        eptc_geral = resultados_por_unidade['EPTC_unidade'].mean() * 100
+        # EPTC médio geral correto considerando todas as unidades
+        total_corretos = resultados_por_unidade['Lançamentos Corretos'].sum()
+        total_totais = resultados_por_unidade['Lançamentos Totais'].sum()
+        total_adicional = resultados_por_unidade['Adicional'].sum()
+        
+        if total_totais + total_adicional > 0:
+            eptc_geral = (total_corretos / (total_totais + total_adicional)) * 100
+        else:
+            eptc_geral = 0
+        
         eptc_geral_formatado = f"{eptc_geral:.2f}".replace('.', ',') + '%'
+
         
         # ==========================================
         # Preparar card HTML do EPTC
@@ -869,6 +878,7 @@ def download_resultados_excel():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
+
 
 
 
