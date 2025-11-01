@@ -783,9 +783,13 @@ def index():
         sem_saida.to_excel(temp_excel_path, index=False)"""
 
 
+        print("media_geral_euft_formatado:", media_geral_euft_formatado)
+        print("media_geral_euft_percentual:", media_geral_euft_percentual)
+
         return render_template('index.html',
                             resultados=resultados_html,
-                            eptc_resultado=media_geral_euft_percentual,
+                            eptc_resultado=media_geral_euft_formatado if 'media_geral_euft_formatado' in locals() else "0,00",
+                            eptc_percentual=media_geral_euft_percentual if 'media_geral_euft_percentual' in locals() else "0%",
                             erros=erros_html,
                             grafico_labels=json.dumps(labels),
                             grafico_dados=json.dumps(valores),
@@ -839,6 +843,7 @@ def download_resultados_excel():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
+
 
 
 
