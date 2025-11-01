@@ -629,9 +629,9 @@ def index():
             axis=1
         )
         
-        # EUFT médio geral: média dos EUFT individuais, não da média dos totais
-        euft_geral = resultados_por_unidade['EUFT_unidade'].mean() * 100
-        euft_geral_formatado = f"{euft_geral:.2f}".replace('.', ',') + '%'
+        # EPTC médio geral: considerar apenas linhas com lotação patrimonial preenchida
+        eptc_geral = resultados_por_unidade[resultados_por_unidade['lotacao_patrimonial'] != '']['EPTC_unidade'].mean() * 100
+        eptc_geral_formatado = f"{eptc_geral:.2f}".replace('.', ',') + '%'
 
         # Monta HTML do card EUFT
         card_euft_html = f"""
@@ -868,6 +868,7 @@ def download_resultados_excel():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
+
 
 
 
