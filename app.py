@@ -635,8 +635,8 @@ def index():
         )
         
         # EPTC médio geral correto considerando todas as unidades
-        total_corretos = resultados_por_unidade['Lançamentos Corretos'].sum()
-        total_totais = resultados_por_unidade['Lançamentos Totais'].sum()
+        total_corretos = resultados_por_unidade['Dias_Corretos'].sum()
+        total_totais = resultados_por_unidade['Dias_Totais'].sum()
         total_adicional = resultados_por_unidade['Adicional'].sum()
         
         if total_totais + total_adicional > 0:
@@ -878,6 +878,7 @@ def download_resultados_excel():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
+
 
 
 
