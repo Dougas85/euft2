@@ -618,6 +618,31 @@ def index():
             resultados_html += f"<tr><td>{i + 1}</td><td>{row['lotacao_patrimonial']}</td><td>{row['Dias_Corretos']}</td><td>{row['Dias_Totais']}</td><td>{row['Adicional']}</td><td>{euft_unidade_percent}</td></tr>"
 
         resultados_html += "</tbody></table>"
+
+        # NOVO: Calcular o EPTC (EUFT geral)
+        euptc_geral = resultados_veiculo["EUFT"].mean() * 100
+        euptc_geral_formatado = f"{euptc_geral:.2f}".replace('.', ',') + '%'
+        
+        # NOVO: Gerar DataFrame de resultados para exportação
+        resultados_export_df = resultados_veiculo.copy()
+        resultados_export_df['EUFT (%)'] = resultados_export_df['EUFT'] * 100
+        temp_csv_path_resultados = os.path.join(tempfile.gettempdir(), "resultados_euft.csv")
+        temp_excel_path_resultados = os.path.join(tempfile.gettempdir(), "resultados_euft.xlsx")
+        resultados_export_df.to_csv(temp_csv_path_resultados, index=False, sep=';', encoding='utf-8-sig')
+        resultados_export_df.to_excel(temp_excel_path_resultados, index=False)
+        
+        # ==========================================
+        # NOVO: Montar o card do EPTC para exibir na página principal
+        # ==========================================
+        card_euptc_html = f"""
+        <div class="card text-center shadow-lg border-0 mb-4" style="background-color:#003366; color:white;">
+            <div class="card-body">
+                <h5 class="card-title fw-bold">EPTC</h5>
+                <p class="display-5 fw-bold text-warning">{euptc_geral_formatado}</p>
+                <p class="mb-0">Eficiência Média Geral</p>
+            </div>
+        </div>
+        """
         
         erros_html = ""
         for i, row in erros.iterrows():
@@ -774,6 +799,9 @@ def index():
                             link_excel='/download/erros_excel',
                             link_csv_sem_saida='/download/sem_saida_csv',
                             link_excel_sem_saida='/download/sem_saida_excel',
+                            link_csv_resultados='/download/resultados_csv',
+                            link_excel_resultados='/download/resultados_excel',
+                            card_euptc=card_euptc_html,
                             regioes=regioes,
                             region_selecionada=region,
                             deficit_html=deficit_html)
@@ -801,8 +829,21 @@ def download_sem_saida_excel():
     temp_excel_path = os.path.join(tempfile.gettempdir(), "sem_saida_euft.xlsx")
     return send_file(temp_excel_path, as_attachment=True, download_name="Sem_Saida_EUFT.xlsx")
 
+# NOVO: Rotas para exportar resultados EUFT
+@app.route('/download/resultados_csv')
+def download_resultados_csv():
+    temp_csv_path_resultados = os.path.join(tempfile.gettempdir(), "resultados_euft.csv")
+    return send_file(temp_csv_path_resultados, as_attachment=True, download_name="Resultados_EUFT.csv")
+
+@app.route('/download/resultados_excel')
+def download_resultados_excel():
+    temp_excel_path_resultados = os.path.join(tempfile.gettempdir(), "resultados_euft.xlsx")
+    return send_file(temp_excel_path_resultados, as_attachment=True, download_name="Resultados_EUFT.xlsx")
+
+
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
+
 
 
 
