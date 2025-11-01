@@ -629,10 +629,11 @@ def index():
             axis=1
         )
         
-        # EUFT médio geral: considerar apenas linhas com lotação patrimonial preenchida
-        euft_geral = resultados_por_unidade[resultados_por_unidade['lotacao_patrimonial'] != '']['EUFT_unidade'].mean() * 100
-        euft_geral_formatado = f"{euft_geral:.2f}".replace('.', ',') + '%'
 
+        # Pega o valor da linha de ID 1 (linha agregada)
+        linha_agregada = resultados_por_unidade.iloc[0]  # primeira linha
+        euft_geral_formatado = f"{linha_agregada['EUFT_unidade'] * 100:.2f}".replace('.', ',') + '%'
+        
         # Monta HTML do card EUFT
         card_euft_html = f"""
         <div class="card text-center shadow-lg border-0 mb-4" style="background-color:#003366; color:white;">
@@ -643,7 +644,7 @@ def index():
             </div>
         </div>
         """
-        
+
         # Monta HTML da tabela por unidade
         resultados_html = "<h3 class='mt-4'>Resultados por Unidade</h3>"
         resultados_html += "<table id='unidadeTable' class='table table-bordered table-striped mt-2'>"
@@ -868,6 +869,7 @@ def download_resultados_excel():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
+
 
 
 
