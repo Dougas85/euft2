@@ -320,6 +320,10 @@ def index():
     placas_to_lotacao = []
     region = None
 
+    # Adicione estas linhas:
+    card_euptc_html = ""  # garante que a variável sempre exista
+    euptc_geral_formatado = "0,00%"  # valor padrão caso não haja cálculo
+
     # Inicializa variáveis de resultado com valores padrão
     media_geral_euft_formatado = "0,00"
     media_geral_euft_percentual = "0%"
@@ -865,6 +869,7 @@ def download_resultados_excel():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
+
 
 
 
