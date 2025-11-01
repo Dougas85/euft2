@@ -620,18 +620,20 @@ def index():
         resultados_por_unidade = resultados_veiculo.groupby('lotacao_patrimonial').agg({
             'Dias_Corretos': 'sum',  # lançamentos corretos
             'Dias_Totais': 'sum',    # lançamentos totais
-            'Adicional': 'sum'       # adicional
+            'Adicional': 'sum',      # adicional
+            'EUFT': 'mean'           # EUFT médio por unidade (média dos veículos)
         }).reset_index()
         
-        # Calcula EPTC por unidade
+        # Calcula EPTC por unidade usando a soma dos dias
         resultados_por_unidade['EPTC_unidade'] = resultados_por_unidade.apply(
             lambda row: row['Dias_Corretos'] / (row['Dias_Totais'] + row['Adicional']) if (row['Dias_Totais'] + row['Adicional']) > 0 else 0,
             axis=1
         )
         
-        # EPTC médio geral
-        eptc_geral = resultados_por_unidade['EPTC_unidade'].mean() * 100
+        # EPTC médio geral: média dos EUFT individuais, não da média dos totais
+        eptc_geral = resultados_veiculo['EUFT'].mean() * 100
         eptc_geral_formatado = f"{eptc_geral:.2f}".replace('.', ',') + '%'
+
         
         # Monta HTML do card EPTC
         card_eptc_html = f"""
@@ -868,6 +870,7 @@ def download_resultados_excel():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
+
 
 
 
