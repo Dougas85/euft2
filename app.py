@@ -615,24 +615,34 @@ def index():
         # =========================
         # RESULTADOS POR UNIDADE  EUFT GERAL
         # =========================
+        # =========================
+        # RESULTADOS POR UNIDADE  EUFT GERAL
+        # =========================
         
         # Agrupa por lotação patrimonial para obter totais
         resultados_por_unidade = resultados_veiculo.groupby('lotacao_patrimonial').agg({
-            'Dias_Corretos': 'sum',  # lançamentos corretos
-            'Dias_Totais': 'sum',    # lançamentos totais
-            'Adicional': 'sum',      # adicional
+            'Dias_Corretos': 'sum',
+            'Dias_Totais': 'sum',
+            'Adicional': 'sum',
         }).reset_index()
         
-        # Calcula EUFT por unidade usando a soma dos dias
+        # Calcula EUFT por unidade
         resultados_por_unidade['EUFT_unidade'] = resultados_por_unidade.apply(
-            lambda row: row['Dias_Corretos'] / (row['Dias_Totais'] + row['Adicional']) if (row['Dias_Totais'] + row['Adicional']) > 0 else 0,
+            lambda row: row['Dias_Corretos'] / (row['Dias_Totais'] + row['Adicional'])
+            if (row['Dias_Totais'] + row['Adicional']) > 0 else 0,
             axis=1
         )
         
-
-        # Pega o valor da linha de ID 1 (linha agregada)
-        linha_agregada = resultados_por_unidade.iloc[0]  # primeira linha
-        euft_geral_formatado = f"{linha_agregada['EUFT_unidade'] * 100:.2f}".replace('.', ',') + '%'
+        # 💡 Pega o valor da linha agregada (lotação vazia = total)
+        linha_geral = resultados_por_unidade[resultados_por_unidade['lotacao_patrimonial'] == '']
+        
+        if not linha_geral.empty:
+            euft_geral_valor = float(linha_geral['EUFT_unidade'].values[0]) * 100
+        else:
+            # fallback se a linha agregada não existir
+            euft_geral_valor = resultados_por_unidade['EUFT_unidade'].mean() * 100
+        
+        euft_geral_formatado = f"{euft_geral_valor:.2f}".replace('.', ',') + '%'
         
         # Monta HTML do card EUFT
         card_euft_html = f"""
@@ -644,6 +654,8 @@ def index():
             </div>
         </div>
         """
+
+       
 
         # Monta HTML da tabela por unidade
         resultados_html = "<h3 class='mt-4'>Resultados por Unidade</h3>"
@@ -869,6 +881,7 @@ def download_resultados_excel():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
+
 
 
 
