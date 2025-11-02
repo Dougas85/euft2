@@ -219,9 +219,9 @@ def obter_dias_uteis_mes():
 
 # Usa a função
 DIAS_UTEIS_MES_ATUAL = obter_dias_uteis_mes()
-LIMITE_UTEIS = min(18, len(DIAS_UTEIS_MES_ATUAL))
 
 def calcular_euft(df, DIAS_UTEIS_MES_ATUAL, placas_scudo, placas_especificas, placas_mobi, placas_analisadas, placas_to_lotacao):
+    dias_uteis_mes = len(DIAS_UTEIS_MES_ATUAL)
 
     df = df.copy()
     df['Data Partida'] = pd.to_datetime(df['Data Partida'], format='%d/%m/%Y', errors='coerce')
@@ -231,10 +231,8 @@ def calcular_euft(df, DIAS_UTEIS_MES_ATUAL, placas_scudo, placas_especificas, pl
     df['Tempo Utilizacao'] = df.apply(calcular_tempo_utilizacao, axis=1)
     df['Distancia Percorrida'] = df['Hod. Retorno'] - df['Hod. Partida']
 
-    # 🔹 Considerar todas as linhas com placas analisadas (mesmo se LTU/LCE/Distrito estiverem em branco)
     df_validos = df[df['Placa'].isin(placas_analisadas)]
 
-    # 🔹 Agrupar dados
     df_agrupado = df_validos.groupby(['Placa', 'Data Partida', 'Matrícula Condutor']).agg({
         'Tempo Utilizacao': 'sum',
         'Distancia Percorrida': 'sum',
@@ -242,23 +240,19 @@ def calcular_euft(df, DIAS_UTEIS_MES_ATUAL, placas_scudo, placas_especificas, pl
         'Unidade em Operação': 'first'
     }).reset_index()
 
-    # 🔹 Verificar corretude
     df_agrupado['Correto'] = df_agrupado.apply(
         lambda row: verificar_corretude_linha(row, placas_scudo, placas_especificas, placas_mobi),
         axis=1
     )
 
-    # 🔹 Motivo do erro e formatação
     df_agrupado['Motivo Erro'] = df_agrupado.apply(
         lambda row: motivo_erro(row, placas_scudo, placas_especificas, placas_mobi),
         axis=1
     )
     df_agrupado['Tempo Utilizacao Formatado'] = df_agrupado['Tempo Utilizacao'].map(formatar_tempo_horas_minutos)
 
-    # 🔹 Calcular resultados por veículo
     resultados_por_veiculo = df_agrupado.groupby('Placa').agg(Dias_Corretos=('Correto', 'sum')).reset_index()
 
-    # 🔹 Mesclar com dias registrados
     df_registros = df[df['Placa'].isin(placas_analisadas)]
     registros_distintos = df_registros.groupby(['Placa', 'Data Partida', 'Matrícula Condutor']).size().reset_index(name='count')
     dias_registrados_por_placa = registros_distintos.groupby('Placa')['count'].count().reset_index()
@@ -268,15 +262,17 @@ def calcular_euft(df, DIAS_UTEIS_MES_ATUAL, placas_scudo, placas_especificas, pl
     resultados_por_veiculo['Dias_Corretos'] = resultados_por_veiculo['Dias_Corretos'].fillna(0).astype(int)
     resultados_por_veiculo['Dias_Totais'] = resultados_por_veiculo['Dias_Totais'].fillna(0).astype(int)
 
-    # 🔹 Calcular limite de dias úteis por veículo com base nos dias distintos de uso
-    dias_por_placa = df_agrupado.groupby('Placa')['Data Partida'].nunique().reset_index()
-    dias_por_placa.rename(columns={'Data Partida': 'Limite_Dias'}, inplace=True)
-    dias_por_placa['Limite_Dias'] = dias_por_placa['Limite_Dias'].apply(lambda x: min(18, x))
-    
-    # 🔹 Mesclar com resultados
-    resultados_por_veiculo = resultados_por_veiculo.merge(dias_por_placa, on='Placa', how='left')
-    
-    # 🔹 Calcular adicional com base no limite por veículo
+    # 🔹 Calcular dias distintos registrados por placa
+    dias_distintos_por_placa = df_agrupado.groupby('Placa')['Data Partida'].nunique().reset_index()
+    dias_distintos_por_placa.rename(columns={'Data Partida': 'Dias_Registrados'}, inplace=True)
+
+    resultados_por_veiculo = resultados_por_veiculo.merge(dias_distintos_por_placa, on='Placa', how='left')
+
+    # 🔹 Calcular limite por veículo: mínimo entre dias úteis do mês e dias registrados no DataFrame
+    resultados_por_veiculo['Limite_Dias'] = resultados_por_veiculo['Dias_Registrados'].apply(
+        lambda x: min(dias_uteis_mes, x)
+    )
+
     resultados_por_veiculo['Adicional'] = resultados_por_veiculo.apply(
         lambda row: max(0, row['Limite_Dias'] - row['Dias_Totais']),
         axis=1
@@ -310,10 +306,10 @@ def calcular_euft(df, DIAS_UTEIS_MES_ATUAL, placas_scudo, placas_especificas, pl
 
     resultados_por_veiculo = pd.concat([resultados_por_veiculo, linha_total], ignore_index=True)
 
-    # 🔹 Retornar também os erros
     df_erros = df_agrupado[~df_agrupado['Correto']].copy()
 
     return resultados_por_veiculo, df_erros
+
 
 
 
@@ -907,6 +903,7 @@ def download_resultados_excel():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
+
 
 
 
