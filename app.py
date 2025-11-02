@@ -826,8 +826,8 @@ def index():
 
         return render_template('index.html',
                             resultados=resultados_html,
-                            euft_resultado=media_geral_euft_formatado,
-                            euft_percentual=media_geral_euft_percentual,
+                            euft_resultado=media_geral_formatado,
+                            euft_percentual=euft_geral_formatado,
                             erros=erros_html,
                             grafico_labels=json.dumps(labels),
                             grafico_dados=json.dumps(valores),
@@ -881,6 +881,7 @@ def download_resultados_excel():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
+
 
 
 
