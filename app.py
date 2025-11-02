@@ -211,7 +211,7 @@ def obter_dias_uteis_mes():
     dias_uteis = []
 
     dia = primeiro_dia
-    while dia.month == hoje.month:
+    while dia <= hoje:
         if dia.weekday() < 5:  # segunda (0) a sexta (4)
             dias_uteis.append(dia)
         dia += timedelta(days=1)
@@ -219,6 +219,7 @@ def obter_dias_uteis_mes():
 
 # Usa a função
 DIAS_UTEIS_MES_ATUAL = obter_dias_uteis_mes()
+LIMITE_UTEIS = min(18, len(DIAS_UTEIS_MES_ATUAL))
 
 def calcular_euft(df, DIAS_UTEIS_MES_ATUAL, placas_scudo, placas_especificas, placas_mobi, placas_analisadas, placas_to_lotacao):
 
@@ -267,9 +268,18 @@ def calcular_euft(df, DIAS_UTEIS_MES_ATUAL, placas_scudo, placas_especificas, pl
     resultados_por_veiculo['Dias_Corretos'] = resultados_por_veiculo['Dias_Corretos'].fillna(0).astype(int)
     resultados_por_veiculo['Dias_Totais'] = resultados_por_veiculo['Dias_Totais'].fillna(0).astype(int)
 
-    dias_uteis_ate_agora = sum(d <= date.today() for d in DIAS_UTEIS_MES_ATUAL)
-    resultados_por_veiculo['Adicional'] = resultados_por_veiculo['Dias_Totais'].apply(
-        lambda x: max(0, dias_uteis_ate_agora - x)
+    # 🔹 Calcular limite de dias úteis por veículo com base nos dias distintos de uso
+    dias_por_placa = df_agrupado.groupby('Placa')['Data Partida'].nunique().reset_index()
+    dias_por_placa.rename(columns={'Data Partida': 'Limite_Dias'}, inplace=True)
+    dias_por_placa['Limite_Dias'] = dias_por_placa['Limite_Dias'].apply(lambda x: min(18, x))
+    
+    # 🔹 Mesclar com resultados
+    resultados_por_veiculo = resultados_por_veiculo.merge(dias_por_placa, on='Placa', how='left')
+    
+    # 🔹 Calcular adicional com base no limite por veículo
+    resultados_por_veiculo['Adicional'] = resultados_por_veiculo.apply(
+        lambda row: max(0, row['Limite_Dias'] - row['Dias_Totais']),
+        axis=1
     )
 
     resultados_por_veiculo['EUFT'] = (
@@ -897,6 +907,7 @@ def download_resultados_excel():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
+
 
 
 
