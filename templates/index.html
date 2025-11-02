@@ -393,9 +393,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const botoesDownloadSemSaida = document.getElementById('botoesDownloadSemSaida');
         if (botoesDownloadSemSaida) botoesDownloadSemSaida.style.display = (showId === 'veiculosSemSaida' && document.getElementById('veiculosSemSaida').style.display === 'block') ? 'block' : 'none';
 
-        const botoesDownloadResultados = document.getElementByID('botoesDownloadResultados');
+        const botoesDownloadResultados = document.getElementById('botoesDownloadResultados');
         if (botoesDownloadResultados)
-            botoesDownloadResultados.style.display = (showId === 'results' $$ document.getElmentById('results').style.display === 'block') ? 'block' : 'none';
+            botoesDownloadResultados.style.display = (showId === 'results' $$ document.getElementById('results').style.display === 'block') ? 'block' : 'none';
     
     }
 
@@ -646,6 +646,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 </body>
 </html>
+
 
 
 
