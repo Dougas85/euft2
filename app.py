@@ -205,6 +205,21 @@ def motivo_erro(row, placas_scudo, placas_especificas, placas_mobi):
             return f"Distância fora do intervalo (MOTO): {dist:.1f}km"
     return 'Erro não identificado'
 
+def obter_dias_uteis_mes():
+    hoje = date.today()
+    primeiro_dia = hoje.replace(day=1)
+    dias_uteis = []
+
+    dia = primeiro_dia
+    while dia.month == hoje.month:
+        if dia.weekday() < 5:  # segunda (0) a sexta (4)
+            dias_uteis.append(dia)
+        dia += timedelta(days=1)
+    return dias_uteis
+
+# Usa a função
+dias_uteis_mes = obter_dias_uteis_mes()
+
 def calcular_euft(df, dias_uteis_mes, placas_scudo, placas_especificas, placas_mobi, placas_analisadas, placas_to_lotacao):
 
     df = df.copy()
@@ -882,6 +897,7 @@ def download_resultados_excel():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
+
 
 
 
