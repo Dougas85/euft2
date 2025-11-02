@@ -2,7 +2,7 @@ import os
 import pandas as pd
 from itertools import chain
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, date, timedelta
 import pytz
 import tempfile
 import numpy as np
@@ -897,6 +897,7 @@ def download_resultados_excel():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
+
 
 
 
