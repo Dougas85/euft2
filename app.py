@@ -218,9 +218,9 @@ def obter_dias_uteis_mes():
     return dias_uteis
 
 # Usa a função
-dias_uteis_mes = obter_dias_uteis_mes()
+DIAS_UTEIS_MES_ATUAL = obter_dias_uteis_mes()
 
-def calcular_euft(df, dias_uteis_mes, placas_scudo, placas_especificas, placas_mobi, placas_analisadas, placas_to_lotacao):
+def calcular_euft(df, DIAS_UTEIS_MES_ATUAL, placas_scudo, placas_especificas, placas_mobi, placas_analisadas, placas_to_lotacao):
 
     df = df.copy()
     df['Data Partida'] = pd.to_datetime(df['Data Partida'], format='%d/%m/%Y', errors='coerce')
@@ -267,7 +267,7 @@ def calcular_euft(df, dias_uteis_mes, placas_scudo, placas_especificas, placas_m
     resultados_por_veiculo['Dias_Corretos'] = resultados_por_veiculo['Dias_Corretos'].fillna(0).astype(int)
     resultados_por_veiculo['Dias_Totais'] = resultados_por_veiculo['Dias_Totais'].fillna(0).astype(int)
 
-    dias_uteis_ate_agora = sum(d <= date.today() for d in dias_uteis_mes)
+    dias_uteis_ate_agora = sum(d <= date.today() for d in DIAS_UTEIS_MES_ATUAL)
     resultados_por_veiculo['Adicional'] = resultados_por_veiculo['Dias_Totais'].apply(
         lambda x: max(0, dias_uteis_ate_agora - x)
     )
@@ -897,6 +897,7 @@ def download_resultados_excel():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
+
 
 
 
