@@ -252,8 +252,9 @@ def calcular_euft(df, dias_uteis_mes, placas_scudo, placas_especificas, placas_m
     resultados_por_veiculo['Dias_Corretos'] = resultados_por_veiculo['Dias_Corretos'].fillna(0).astype(int)
     resultados_por_veiculo['Dias_Totais'] = resultados_por_veiculo['Dias_Totais'].fillna(0).astype(int)
 
+    dias_uteis_ate_agora = sum(d <= date.today() for d in dias_uteis_mes)
     resultados_por_veiculo['Adicional'] = resultados_por_veiculo['Dias_Totais'].apply(
-        lambda x: max(0, 18 - x) if x < 18 else 0
+        lambda x: max(0, dias_uteis_ate_agora - x)
     )
 
     resultados_por_veiculo['EUFT'] = (
@@ -881,6 +882,7 @@ def download_resultados_excel():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
+
 
 
 
