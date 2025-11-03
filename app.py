@@ -161,7 +161,7 @@ def verificar_corretude_linha(row, placas_scudo, placas_especificas, placas_mobi
     dist = row['Distancia Percorrida']
     placa = row['Placa']
 
-    if isinstance(tempo, str):  # erro de cálculo
+    if isinstance(tempo, (int, float)) or pd.isna(dist):  # erro de cálculo
         return False
 
     if placa in placas_scudo:
@@ -255,8 +255,8 @@ def calcular_euft(df, DIAS_UTEIS_MES_ATUAL, placas_scudo, placas_especificas, pl
 
     df_registros = df[df['Placa'].isin(placas_analisadas)]
     registros_distintos = df_registros.groupby(['Placa', 'Data Partida', 'Matrícula Condutor']).size().reset_index(name='count')
-    dias_registrados_por_placa = registros_distintos.groupby('Placa')['count'].count().reset_index()
-    dias_registrados_por_placa.rename(columns={'count': 'Dias_Totais'}, inplace=True)
+    dias_registrados_por_placa = df[df['Placa'].isin(placas_analisadas)].groupby('Placa')['Data Partida'].nunique().reset_index()
+    dias_registrados_por_placa.rename(columns={'Data Partida': 'Dias_Totais'}, inplace=True)
 
     resultados_por_veiculo = resultados_por_veiculo.merge(dias_registrados_por_placa, on='Placa', how='outer')
     resultados_por_veiculo['Dias_Corretos'] = resultados_por_veiculo['Dias_Corretos'].fillna(0).astype(int)
@@ -900,6 +900,7 @@ def download_resultados_excel():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
+
 
 
 
