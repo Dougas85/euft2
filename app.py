@@ -588,7 +588,7 @@ def index():
 
             df = df_original.dropna(subset=['Data Retorno', 'Hora Retorno', 'Hod. Retorno'])
 
-            resultados_veiculo, erros = calcular_euft(df, 20, placas_scudo, placas_especificas, placas_mobi, placas_analisadas, placas_to_lotacao)
+            resultados_veiculo, erros = calcular_euft(df, DIAS_UTEIS_MES_ATUAL, placas_scudo, placas_especificas, placas_mobi, placas_analisadas, placas_to_lotacao)
             placas_faltantes = verificar_placas_sem_saida(df_original, placas_analisadas)
 
             # Filtra placas com Status OS "APROVADA" ou "ABERTA" (em manutenção) — usando df_original!
@@ -634,9 +634,6 @@ def index():
             euft_percent = f"{row['EUFT'] * 100:.2f}".replace('.', ',') + '%'
             resultados_html += f"<tr><td>{i + 1}</td><td>{row['Placa']}</td><td>{row['lotacao_patrimonial']}</td><td>{row['Dias_Corretos']}</td><td>{row['Dias_Totais']}</td><td>{row['Adicional']}</td><td>{euft_percent}</td></tr>"
         
-        # =========================
-        # RESULTADOS POR UNIDADE  EUFT GERAL
-        # =========================
         # =========================
         # RESULTADOS POR UNIDADE  EUFT GERAL
         # =========================
@@ -903,6 +900,7 @@ def download_resultados_excel():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
+
 
 
 
