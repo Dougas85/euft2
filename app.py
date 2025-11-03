@@ -116,7 +116,7 @@ def calcular_tempo_utilizacao(row):
         retorno = datetime.strptime(f"{row['Data Retorno'].date()} {row['Hora Retorno']}", "%Y-%m-%d %H:%M")
     except Exception as e:
         return f"Erro ao converter data/hora: {e}"
-    
+
     duracao = (retorno - partida).total_seconds() / 3600
     if row['Almoço?'] == 'S':
         duracao -= 1
@@ -207,6 +207,7 @@ def motivo_erro(row, placas_scudo, placas_especificas, placas_mobi):
 
 def calcular_euft(df, dias_uteis_mes, placas_scudo, placas_especificas, placas_mobi, placas_analisadas, placas_to_lotacao):
 
+    # 1) Cópia e pré-processamento geral
     df = df.copy()
     df['Data Partida'] = pd.to_datetime(df['Data Partida'], format='%d/%m/%Y', errors='coerce')
     df['Data Retorno'] = pd.to_datetime(df['Data Retorno'], format='%d/%m/%Y', errors='coerce')
@@ -215,6 +216,22 @@ def calcular_euft(df, dias_uteis_mes, placas_scudo, placas_especificas, placas_m
     df['Tempo Utilizacao'] = df.apply(calcular_tempo_utilizacao, axis=1)
     df['Distancia Percorrida'] = df['Hod. Retorno'] - df['Hod. Partida']
 
+    # 2) Calcular DIAS REGISTRADOS (inclusive com erros ou campos faltantes)
+    df_registros = df[df['Placa'].isin(placas_analisadas)]
+    registros_distintos = df_registros.groupby(['Placa', 'Data Partida', 'Matrícula Condutor']).size().reset_index(name='count')
+    dias_registrados_por_placa = registros_distintos.groupby('Placa')['count'].count().reset_index()
+    dias_registrados_por_placa.rename(columns={'count': 'Dias_Totais'}, inplace=True)
+
+    def is_preenchido(col):
+        return col.astype(str).str.strip().str.lower().replace('nan', '') != ''
+
+    df_validos = df[
+        df['Placa'].isin(placas_analisadas) & (
+            is_preenchido(df['Nº Distrito']) |
+            is_preenchido(df['Nº LCE']) |
+            is_preenchido(df['Nº LTU'])
+        )
+    ]
     # 🔹 Considerar todas as linhas com placas analisadas (mesmo se LTU/LCE/Distrito estiverem em branco)
     df_validos = df[df['Placa'].isin(placas_analisadas)]
 
@@ -226,12 +243,16 @@ def calcular_euft(df, dias_uteis_mes, placas_scudo, placas_especificas, placas_m
         'Unidade em Operação': 'first'
     }).reset_index()
 
+    # 4) Verificar corretude
+    df_agrupado['Correto'] = df_agrupado.apply(lambda row: verificar_corretude_linha(row, placas_scudo, placas_especificas, placas_mobi), axis=1)
     # 🔹 Verificar corretude
     df_agrupado['Correto'] = df_agrupado.apply(
         lambda row: verificar_corretude_linha(row, placas_scudo, placas_especificas, placas_mobi),
         axis=1
     )
 
+    # 5) Motivo do erro e formatação
+    df_agrupado['Motivo Erro'] = df_agrupado.apply(lambda row: motivo_erro(row, placas_scudo, placas_especificas, placas_mobi), axis=1)
     # 🔹 Motivo do erro e formatação
     df_agrupado['Motivo Erro'] = df_agrupado.apply(
         lambda row: motivo_erro(row, placas_scudo, placas_especificas, placas_mobi),
@@ -239,6 +260,10 @@ def calcular_euft(df, dias_uteis_mes, placas_scudo, placas_especificas, placas_m
     )
     df_agrupado['Tempo Utilizacao Formatado'] = df_agrupado['Tempo Utilizacao'].map(formatar_tempo_horas_minutos)
 
+    # 6) Calcular Dias Corretos
+    resultados_por_veiculo = df_agrupado.groupby('Placa').agg(
+        Dias_Corretos=('Correto', 'sum')
+    ).reset_index()
     # 🔹 Calcular resultados por veículo
     resultados_por_veiculo = df_agrupado.groupby('Placa').agg(Dias_Corretos=('Correto', 'sum')).reset_index()
 
@@ -248,15 +273,18 @@ def calcular_euft(df, dias_uteis_mes, placas_scudo, placas_especificas, placas_m
     dias_registrados_por_placa = registros_distintos.groupby('Placa')['count'].count().reset_index()
     dias_registrados_por_placa.rename(columns={'count': 'Dias_Totais'}, inplace=True)
 
+    # 7) Mesclar com Dias Totais
     resultados_por_veiculo = resultados_por_veiculo.merge(dias_registrados_por_placa, on='Placa', how='outer')
     resultados_por_veiculo['Dias_Corretos'] = resultados_por_veiculo['Dias_Corretos'].fillna(0).astype(int)
     resultados_por_veiculo['Dias_Totais'] = resultados_por_veiculo['Dias_Totais'].fillna(0).astype(int)
 
+    # 8) Calcular adicional e EUFT
     resultados_por_veiculo['Adicional'] = resultados_por_veiculo['Dias_Totais'].apply(
         lambda x: max(0, 18 - x) if x < 18 else 0
     )
 
     resultados_por_veiculo['EUFT'] = (
+        resultados_por_veiculo['Dias_Corretos'] / 
         resultados_por_veiculo['Dias_Corretos'] /
         (resultados_por_veiculo['Dias_Totais'] + resultados_por_veiculo['Adicional'])
     ).fillna(0)
@@ -265,6 +293,7 @@ def calcular_euft(df, dias_uteis_mes, placas_scudo, placas_especificas, placas_m
         resultados_por_veiculo['EUFT'] * 100
     ).map(lambda x: f"{x:.2f}".replace('.', ',') + '%')
 
+    # 9) Adicionar linha TOTAL
     # 🔹 Linha TOTAL
     total_veiculos = resultados_por_veiculo.shape[0]
     total_dias_corretos = resultados_por_veiculo['Dias_Corretos'].sum()
@@ -284,6 +313,7 @@ def calcular_euft(df, dias_uteis_mes, placas_scudo, placas_especificas, placas_m
 
     resultados_por_veiculo = pd.concat([resultados_por_veiculo, linha_total], ignore_index=True)
 
+    # 10) Retornar também os erros
     # 🔹 Retornar também os erros
     df_erros = df_agrupado[~df_agrupado['Correto']].copy()
 
@@ -411,7 +441,7 @@ def index():
             df2 = pd.read_csv(path2, delimiter=';', skiprows=3, names=colunas_df2, encoding='utf-8')
             placas_sem_retorno = veiculos_sem_retorno(df1, placas_analisadas)
             """print(placas_sem_retorno)  # Mostra o DataFrame retornado"""
-            
+
             # Limpeza e normalização da df2
             df2['Placa'] = df2['Placa'].str.replace(r'\s+', '', regex=True).str.upper()
             df2['STATUS OS'] = df2['STATUS OS'].astype(str).str.strip().str.upper()
@@ -459,7 +489,7 @@ def index():
                     saidas = pivot.at[lot, dia]
                     deficit = max(0, placas_disp - saidas)  # impede valor negativo
                     pivot.at[lot, dia] = deficit
-    
+
             # Soma total de déficits por lotação
             pivot['Déficit Total'] = pivot.sum(axis=1)
 
@@ -471,7 +501,7 @@ def index():
             # Converte datas das colunas para formato DD/MM/YYYY
             pivot.columns = [col.strftime('%d/%m/%Y') if isinstance(col, pd.Timestamp) else col for col in pivot.columns]
 
-            
+
             # Reseta índice para gerar DataFrame final
             deficit_df = pivot.reset_index()
 
@@ -499,7 +529,7 @@ def index():
 
             deficit_df['classe_linha'] = deficit_count.map(classificar_linha)
 
-                        
+
             # Define colunas visíveis (exclui 'classe_linha')
             colunas_visiveis = [col for col in deficit_df.columns if col != 'classe_linha']
 
@@ -523,7 +553,7 @@ def index():
 
             for _, row in deficit_df.iterrows():
                 classe = row['classe_linha']
-                
+
                 # Ícone por classe
                 if classe == 'linha-vermelha':
                     icone = '&#128308;'  # 🔴
@@ -546,7 +576,7 @@ def index():
                     if isinstance(valor, (int, float)):
                         valor = int(valor)
                     deficit_html += f'<td>{valor}</td>'
-                
+
                 deficit_html += '</tr>'
 
             deficit_html += '</tbody></table>'
@@ -568,13 +598,13 @@ def index():
 
             # Filtra placas com Status OS "APROVADA" ou "ABERTA" (em manutenção) — usando df_original!
             """placas_em_manutencao = df2[df2['STATUS OS'].isin(['APROVADA', 'ABERTA'])]['Placa'].unique()"""
-            
+
             # Remove dinamicamente essas placas da lista de veículos sem saída
 
             placas_faltantes = [placa for placa in placas_faltantes if placa not in placas_em_manutencao]
-        
+
             """veiculos_sem_retorno_df = veiculos_sem_retorno(df1, placas_analisadas)"""
-            
+
             """placas_sem_retorno = veiculos_sem_retorno(df1, placas_analisadas)"""
 
 
@@ -618,7 +648,7 @@ def index():
             resultados_html += f"<tr><td>{i + 1}</td><td>{row['lotacao_patrimonial']}</td><td>{row['Dias_Corretos']}</td><td>{row['Dias_Totais']}</td><td>{row['Adicional']}</td><td>{euft_unidade_percent}</td></tr>"
 
         resultados_html += "</tbody></table>"
-        
+
         erros_html = ""
         for i, row in erros.iterrows():
             erros_html += f"<tr><td>{i + 1}</td><td>{row['Placa']}</td><td>{row['Data Partida']}</td><td>{row['Distancia Percorrida']}</td><td>{row['Lotacao Patrimonial']}</td><td>{row['Unidade em Operação']}</td><td>{row['Motivo Erro']}</td><td>{row['Tempo Utilizacao Formatado']}</td></tr>"
@@ -682,7 +712,7 @@ def index():
         sem_saida_df.to_csv(temp_csv_path_sem_saida, index=False, sep=';', encoding='utf-8-sig')
         sem_saida_df.to_excel(temp_excel_path_sem_saida, index=False)
 
-    
+
         veiculos_sem_retorno_data = []
 
         print(f"Total de veículos sem retorno: {len(placas_sem_retorno)}")
@@ -699,7 +729,7 @@ def index():
                 # Constrói datetime de partida
                 data_partida_str = str(data.get('Data Partida', '')).strip()
                 hora_partida_str = str(data.get('Hora Partida', '')).strip()
-                
+
                 try:
                     datahora_partida = datetime.strptime(f"{data_partida_str} {hora_partida_str}", "%d/%m/%Y %H:%M")
                     datahora_partida = fuso_brasilia.localize(datahora_partida)
@@ -770,6 +800,8 @@ def index():
                             grafico_dados=json.dumps(valores),
                             veiculos_sem_saida=veiculos_sem_saida_html,
                             veiculos_sem_retorno_data=veiculos_sem_retorno_data,
+                            link_csv_resultados='/download/resultados_csv',
+                            link_excel_resultados='/download/resultados_excel',
                             link_csv='/download/erros_csv',
                             link_excel='/download/erros_excel',
                             link_csv_sem_saida='/download/sem_saida_csv',
@@ -801,10 +833,15 @@ def download_sem_saida_excel():
     temp_excel_path = os.path.join(tempfile.gettempdir(), "sem_saida_euft.xlsx")
     return send_file(temp_excel_path, as_attachment=True, download_name="Sem_Saida_EUFT.xlsx")
 
+@app.route('/download/resultados_csv')
+def download_resultados_csv():
+    temp_csv_path_resultados = os.path.join(tempfile.gettempdir(), "resultados_euft.csv")
+    return send_file(temp_csv_path_resultados, as_attachment=True, download_name="Resultados_EUFT.csv")
+
+@app.route('/download/resultados_excel')
+def download_resultados_excel():
+    temp_excel_path_resultados = os.path.join(tempfile.gettempdir(), "resultados_euft.xlsx")
+    return send_file(temp_excel_path_resultados, as_attachment=True, download_name="Resultados_EUFT.xlsx")
+
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
-
-
-
-
-
