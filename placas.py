@@ -157,7 +157,7 @@ placas_to_lotacao2 = {'BYY6C91': ('AC ADAMANTINA', 'CAE TUP'), 'DUQ9B41': ('AC A
                      'GJZ0G32': ('CDD TROPICAL', 'CAE ARC'), 'GKE7A62': ('CDD TROPICAL', 'CAE ARC'), 'CQU8171': ('CDD TROPICAL', 'CAE ARC'), 
                      'FEF5415': ('CDD TROPICAL', 'CAE ARC'), 'GGO7I32': ('CDD TROPICAL', 'CAE ARC'), 'SVB0J83': ('CDD TROPICAL', 'CAE ARC'), 
                      'SVG7B87': ('CDD TROPICAL', 'CAE ARC'), 'SWT8D36': ('CDD TROPICAL', 'CAE ARC'), 'DOC5312': ('CDD TUPA', 'CAE TUP'), 
-                     'DOO8929': ('CDD TUPA', 'CAE TUP'), 'EDL2544': ('CDD TUPA', 'CAE TUP'), 'EZU1334': ('CDD TUPA', 'CAE TUP'), 
+                     'DOO8929': ('CDD TUPA', 'CAE TUP'), 'EDL2544': ('CDD TUPA', 'CAE TUP'), 'EZU1334': ('CDD OSVALDO CRUZ', 'CAE TUP'), 
                      'CQU3A74': ('CDD TUPA', 'CAE TUP'), 'CUJ1H32': ('CDD TUPA', 'CAE TUP'), 'EXN9C84': ('CDD TUPA', 'CAE TUP'), 
                      'GEZ2E14': ('CDD TUPA', 'CAE TUP'), 'GJV3J83': ('CDD TUPA', 'CAE TUP'), 'FEA3J07': ('CDD VILA MARCONDES', 'CAE PPZ'), 
                      'GAZ2F93': ('CDD VILA MARCONDES', 'CAE PPZ'), 'GCB5D97': ('CDD VILA MARCONDES', 'CAE PPZ'), 
@@ -4783,7 +4783,7 @@ placas_to_lotacao9 = {'BYY6C91': ('AC ADAMANTINA', 'CAE TUP'), 'DUQ9B41': ('AC A
                      'GJZ0G32': ('CDD TROPICAL', 'CAE ARC'), 'GKE7A62': ('CDD TROPICAL', 'CAE ARC'), 'CQU8171': ('CDD TROPICAL', 'CAE ARC'), 
                      'FEF5415': ('CDD TROPICAL', 'CAE ARC'), 'GGO7I32': ('CDD TROPICAL', 'CAE ARC'), 'SVB0J83': ('CDD TROPICAL', 'CAE ARC'), 
                      'SVG7B87': ('CDD TROPICAL', 'CAE ARC'), 'SWT8D36': ('CDD TROPICAL', 'CAE ARC'), 'DOC5312': ('CDD TUPA', 'CAE TUP'), 
-                     'DOO8929': ('CDD TUPA', 'CAE TUP'), 'EDL2544': ('CDD TUPA', 'CAE TUP'), 'EZU1334': ('CDD TUPA', 'CAE TUP'), 
+                     'DOO8929': ('CDD TUPA', 'CAE TUP'), 'EDL2544': ('CDD TUPA', 'CAE TUP'), 'EZU1334': ('CDD OSVALDO CRUZ', 'CAE TUP'), 
                      'CQU3A74': ('CDD TUPA', 'CAE TUP'), 'CUJ1H32': ('CDD TUPA', 'CAE TUP'), 'EXN9C84': ('CDD TUPA', 'CAE TUP'), 
                      'GEZ2E14': ('CDD TUPA', 'CAE TUP'), 'GJV3J83': ('CDD TUPA', 'CAE TUP'), 'FEA3J07': ('CDD VILA MARCONDES', 'CAE PPZ'), 
                      'GAZ2F93': ('CDD VILA MARCONDES', 'CAE PPZ'), 'GCB5D97': ('CDD VILA MARCONDES', 'CAE PPZ'), 
@@ -7595,6 +7595,7 @@ placas_mobi9 = {"GDN6E61", "FFD2E31", "FZR2E06", "FIN4G03", "FVC9J65", "GHR4A76"
  "GEY5I85", "CUK3A55", "BYK7B55", "BZB0C83", "EVI1D05", "FZX0C65"
 
 }
+
 
 
 
