@@ -1,14 +1,15 @@
-import os
-import pandas as pd
-from itertools import chain
 import json
-from datetime import datetime, timedelta
-import pytz
+import os
 import tempfile
-import numpy as np
 from collections import Counter
+from datetime import datetime, timedelta
+from itertools import chain
+import itertools
+import pandas as pd
+import pytz
+from flask import Flask, request, render_template, redirect, flash
 from flask import send_file
-from flask import Flask, request, render_template, redirect, flash, url_for, session
+
 from placas import (
     placas_scudo2, placas_scudo7, placas_analisadas2, placas_analisadas7,
     placas_especificas2, placas_especificas7, placas_mobi2, placas_mobi7,
@@ -205,37 +206,22 @@ def motivo_erro(row, placas_scudo, placas_especificas, placas_mobi):
             return f"Distância fora do intervalo (MOTO): {dist:.1f}km"
     return 'Erro não identificado'
 
-def calcular_euft(df, dias_uteis_mes, placas_scudo, placas_especificas, placas_mobi, placas_analisadas, placas_to_lotacao):
 
+def calcular_euft(df, dias_uteis_mes, placas_scudo, placas_especificas, placas_mobi, placas_analisadas, placas_to_lotacao):
     # 1) Cópia e pré-processamento geral
     df = df.copy()
     df['Data Partida'] = pd.to_datetime(df['Data Partida'], format='%d/%m/%Y', errors='coerce')
     df['Data Retorno'] = pd.to_datetime(df['Data Retorno'], format='%d/%m/%Y', errors='coerce')
-    df['Placa'] = df['Placa'].str.strip().str.upper()
+    df['Placa'] = df['Placa'].astype(str).str.strip().str.upper()
 
+    # 2) Calcular tempo e distância
     df['Tempo Utilizacao'] = df.apply(calcular_tempo_utilizacao, axis=1)
     df['Distancia Percorrida'] = df['Hod. Retorno'] - df['Hod. Partida']
 
-    # 2) Calcular DIAS REGISTRADOS (inclusive com erros ou campos faltantes)
-    df_registros = df[df['Placa'].isin(placas_analisadas)]
-    registros_distintos = df_registros.groupby(['Placa', 'Data Partida', 'Matrícula Condutor']).size().reset_index(name='count')
-    dias_registrados_por_placa = registros_distintos.groupby('Placa')['count'].count().reset_index()
-    dias_registrados_por_placa.rename(columns={'count': 'Dias_Totais'}, inplace=True)
+    # 3) Considerar todas as placas analisadas
+    df_validos = df[df['Placa'].isin(placas_analisadas)].copy()
 
-    def is_preenchido(col):
-        return col.astype(str).str.strip().str.lower().replace('nan', '') != ''
-
-    df_validos = df[
-        df['Placa'].isin(placas_analisadas) & (
-            is_preenchido(df['Nº Distrito']) |
-            is_preenchido(df['Nº LCE']) |
-            is_preenchido(df['Nº LTU'])
-        )
-    ]
-    # 🔹 Considerar todas as linhas com placas analisadas (mesmo se LTU/LCE/Distrito estiverem em branco)
-    df_validos = df[df['Placa'].isin(placas_analisadas)]
-
-    # 🔹 Agrupar dados
+    # 4) Agrupar dados por veículo, data e condutor
     df_agrupado = df_validos.groupby(['Placa', 'Data Partida', 'Matrícula Condutor']).agg({
         'Tempo Utilizacao': 'sum',
         'Distancia Percorrida': 'sum',
@@ -243,48 +229,65 @@ def calcular_euft(df, dias_uteis_mes, placas_scudo, placas_especificas, placas_m
         'Unidade em Operação': 'first'
     }).reset_index()
 
-    # 4) Verificar corretude
-    df_agrupado['Correto'] = df_agrupado.apply(lambda row: verificar_corretude_linha(row, placas_scudo, placas_especificas, placas_mobi), axis=1)
-    # 🔹 Verificar corretude
+    # 5) Verificar corretude e motivos de erro
     df_agrupado['Correto'] = df_agrupado.apply(
-        lambda row: verificar_corretude_linha(row, placas_scudo, placas_especificas, placas_mobi),
-        axis=1
+        lambda row: verificar_corretude_linha(row, placas_scudo, placas_especificas, placas_mobi), axis=1
     )
-
-    # 5) Motivo do erro e formatação
-    df_agrupado['Motivo Erro'] = df_agrupado.apply(lambda row: motivo_erro(row, placas_scudo, placas_especificas, placas_mobi), axis=1)
-    # 🔹 Motivo do erro e formatação
     df_agrupado['Motivo Erro'] = df_agrupado.apply(
-        lambda row: motivo_erro(row, placas_scudo, placas_especificas, placas_mobi),
-        axis=1
+        lambda row: motivo_erro(row, placas_scudo, placas_especificas, placas_mobi), axis=1
     )
     df_agrupado['Tempo Utilizacao Formatado'] = df_agrupado['Tempo Utilizacao'].map(formatar_tempo_horas_minutos)
 
-    # 6) Calcular Dias Corretos
-    resultados_por_veiculo = df_agrupado.groupby('Placa').agg(
-        Dias_Corretos=('Correto', 'sum')
-    ).reset_index()
-    # 🔹 Calcular resultados por veículo
-    resultados_por_veiculo = df_agrupado.groupby('Placa').agg(Dias_Corretos=('Correto', 'sum')).reset_index()
+    # 6) Calcular Dias Corretos e Totais
+    resultados_por_veiculo = (
+        df_agrupado.groupby('Placa')
+        .agg(Dias_Corretos=('Correto', 'sum'))
+        .reset_index()
+    )
 
-    # 🔹 Mesclar com dias registrados
-    df_registros = df[df['Placa'].isin(placas_analisadas)]
-    registros_distintos = df_registros.groupby(['Placa', 'Data Partida', 'Matrícula Condutor']).size().reset_index(name='count')
-    dias_registrados_por_placa = registros_distintos.groupby('Placa')['count'].count().reset_index()
-    dias_registrados_por_placa.rename(columns={'count': 'Dias_Totais'}, inplace=True)
+    registros_distintos = (
+        df_validos.groupby(['Placa', 'Data Partida', 'Matrícula Condutor'])
+        .size()
+        .reset_index(name='count')
+    )
+    dias_registrados_por_placa = (
+        registros_distintos.groupby('Placa')['count']
+        .count()
+        .reset_index()
+        .rename(columns={'count': 'Dias_Totais'})
+    )
 
-    # 7) Mesclar com Dias Totais
     resultados_por_veiculo = resultados_por_veiculo.merge(dias_registrados_por_placa, on='Placa', how='outer')
     resultados_por_veiculo['Dias_Corretos'] = resultados_por_veiculo['Dias_Corretos'].fillna(0).astype(int)
     resultados_por_veiculo['Dias_Totais'] = resultados_por_veiculo['Dias_Totais'].fillna(0).astype(int)
 
-    # 8) Calcular adicional e EUFT
-    resultados_por_veiculo['Adicional'] = resultados_por_veiculo['Dias_Totais'].apply(
-        lambda x: max(0, 18 - x) if x < 18 else 0
-    )
+    # 7) Calcular dias úteis do relatório (somente segunda a sexta)
+    dias_uteis_relatorio = df.loc[
+        df['Data Partida'].dt.weekday < 5, 'Data Partida'
+    ].dropna().dt.date.nunique()
 
+    # 8) Calcular adicional mínimo para cada veículo
+    def calcular_adicional(row):
+        minimo_uso = min(18, dias_uteis_relatorio)
+        adicional = max(0, minimo_uso - row['Dias_Totais'])
+        return adicional
+
+    resultados_por_veiculo['Adicional'] = resultados_por_veiculo.apply(calcular_adicional, axis=1)
+
+    # 9) Garantir que todas as placas analisadas estejam no resultado
+    for placa in placas_analisadas:
+        if placa not in resultados_por_veiculo['Placa'].values:
+            resultados_por_veiculo = pd.concat([resultados_por_veiculo, pd.DataFrame([{
+                'Placa': placa,
+                'Dias_Corretos': 0,
+                'Dias_Totais': 0,
+                'Adicional': min(18, dias_uteis_relatorio),
+                'EUFT': 0,
+                'EUFT (%)': '0,00%'
+            }])], ignore_index=True)
+
+    # 10) Calcular EUFT
     resultados_por_veiculo['EUFT'] = (
-        resultados_por_veiculo['Dias_Corretos'] / 
         resultados_por_veiculo['Dias_Corretos'] /
         (resultados_por_veiculo['Dias_Totais'] + resultados_por_veiculo['Adicional'])
     ).fillna(0)
@@ -293,13 +296,16 @@ def calcular_euft(df, dias_uteis_mes, placas_scudo, placas_especificas, placas_m
         resultados_por_veiculo['EUFT'] * 100
     ).map(lambda x: f"{x:.2f}".replace('.', ',') + '%')
 
-    # 9) Adicionar linha TOTAL
-    # 🔹 Linha TOTAL
-    total_veiculos = resultados_por_veiculo.shape[0]
+    # 11) Calcular total geral
     total_dias_corretos = resultados_por_veiculo['Dias_Corretos'].sum()
     total_dias_totais = resultados_por_veiculo['Dias_Totais'].sum()
     total_adicional = resultados_por_veiculo['Adicional'].sum()
-    media_geral_euft = (total_dias_corretos / (total_dias_totais + total_adicional)) if (total_dias_totais + total_adicional) > 0 else 0
+
+    media_geral_euft = (
+        total_dias_corretos / (total_dias_totais + total_adicional)
+        if (total_dias_totais + total_adicional) > 0 else 0
+    )
+
     media_geral_euft_percentual = f"{media_geral_euft * 100:.2f}".replace('.', ',') + '%'
 
     linha_total = pd.DataFrame([{
@@ -313,13 +319,10 @@ def calcular_euft(df, dias_uteis_mes, placas_scudo, placas_especificas, placas_m
 
     resultados_por_veiculo = pd.concat([resultados_por_veiculo, linha_total], ignore_index=True)
 
-    # 10) Retornar também os erros
-    # 🔹 Retornar também os erros
+    # 12) Retornar também os erros
     df_erros = df_agrupado[~df_agrupado['Correto']].copy()
 
-    return resultados_por_veiculo, df_erros
-
-
+    return resultados_por_veiculo, df_erros, media_geral_euft
 
 def veiculos_sem_retorno(df1, placas_analisadas):
     # Normaliza as colunas
@@ -348,6 +351,7 @@ def index():
     placas_especificas = []
     placas_mobi = []
     placas_to_lotacao = []
+    media_geral_euft = None
     region = None
 
     if request.method == 'POST':
@@ -593,7 +597,7 @@ def index():
 
             df = df_original.dropna(subset=['Data Retorno', 'Hora Retorno', 'Hod. Retorno'])
 
-            resultados_veiculo, erros = calcular_euft(df, 20, placas_scudo, placas_especificas, placas_mobi, placas_analisadas, placas_to_lotacao)
+            resultados_veiculo, erros, media_geral_euft = calcular_euft(df, 20, placas_scudo, placas_especificas, placas_mobi, placas_analisadas, placas_to_lotacao)
             placas_faltantes = verificar_placas_sem_saida(df_original, placas_analisadas)
 
             # Filtra placas com Status OS "APROVADA" ou "ABERTA" (em manutenção) — usando df_original!
@@ -638,6 +642,19 @@ def index():
             'Adicional': 'sum',
             'EUFT': 'mean'
         }).reset_index().sort_values(by='EUFT', ascending=False)
+
+
+
+        # Criar DataFrame de resultados para exportação
+        resultados_df = resultados_por_unidade.copy()
+
+        # Salvar os resultados em CSV e Excel
+        temp_dir = tempfile.gettempdir()
+        temp_csv_path_resultados = os.path.join(temp_dir, "results_euft.csv")
+        temp_excel_path_resultados = os.path.join(temp_dir, "results_euft.xlsx")
+
+        resultados_df.to_csv(temp_csv_path_resultados, index=False, encoding="utf-8-sig", sep=';')
+        resultados_df.to_excel(temp_excel_path_resultados, index=False)
 
         resultados_html += "<h3 class='mt-4'>Resultados</h3>"
         resultados_html += "<table id='unidadeTable' class='table table-bordered table-striped mt-2'>"
@@ -715,7 +732,6 @@ def index():
 
         veiculos_sem_retorno_data = []
 
-        print(f"Total de veículos sem retorno: {len(placas_sem_retorno)}")
 
         fuso_brasilia = pytz.timezone("America/Sao_Paulo")
         agora_brasilia = datetime.now(fuso_brasilia)
@@ -741,8 +757,7 @@ def index():
                 if datahora_partida:
                     tempo_decorrido = agora_brasilia - datahora_partida
                     mais_de_sete_horas = tempo_decorrido > timedelta(hours=8)
-                print(f"{placa} - +8h: {mais_de_sete_horas} - Partida: {datahora_partida}")
-
+                """print(f"{placa} - +8h: {mais_de_sete_horas} - Partida: {datahora_partida}")"""
 
                 data_partida_formatada = datahora_partida.strftime('%d/%m/%Y %H:%M') if datahora_partida else ''
 
@@ -771,8 +786,6 @@ def index():
         except Exception as e:
             print(f"Erro ao processar veículos sem retorno: {e}")
 
-
-
         # Continuação do seu processamento
         impacto_unidade = erros.groupby('Unidade em Operação').size().reset_index(name='Qtd_Erros')
         impacto_unidade.columns = ['Unidade', 'Qtd_Erros']
@@ -786,33 +799,25 @@ def index():
         erros.to_csv(temp_csv_path, index=False, sep=';', encoding='utf-8-sig')
         erros.to_excel(temp_excel_path, index=False)
 
-        """# Salvasr veículos sem saída
-        temp_csv_path_sem_saida = os.path.join(tempfile.gettempdir(), "sem_saida_euft.csv")
-        temp_excel_path_sem_saida = os.path.join(tempfile.gettempdir(), "sem_saida_euft.xlsx")
-        sem_saida.to_csv(temp_csv_path, index=False, sep=';', encoding='utf-8-sig')
-        sem_saida.to_excel(temp_excel_path, index=False)"""
-
-
         return render_template('index.html',
-                            resultados=resultados_html,
-                            erros=erros_html,
-                            grafico_labels=json.dumps(labels),
-                            grafico_dados=json.dumps(valores),
-                            veiculos_sem_saida=veiculos_sem_saida_html,
-                            veiculos_sem_retorno_data=veiculos_sem_retorno_data,
-                            link_csv_resultados='/download/resultados_csv',
-                            link_excel_resultados='/download/resultados_excel',
-                            link_csv='/download/erros_csv',
-                            link_excel='/download/erros_excel',
-                            link_csv_sem_saida='/download/sem_saida_csv',
-                            link_excel_sem_saida='/download/sem_saida_excel',
-                            regioes=regioes,
-                            region_selecionada=region,
-                            deficit_html=deficit_html)
+                               resultados=resultados_html,
+                               erros=erros_html,
+                               grafico_labels=json.dumps(labels),
+                               grafico_dados=json.dumps(valores),
+                               veiculos_sem_saida=veiculos_sem_saida_html,
+                               veiculos_sem_retorno_data=veiculos_sem_retorno_data,
+                               link_csv_resultados='/download/results_csv',
+                               link_excel_resultados='/download/results_excel',
+                               link_csv='/download/erros_csv',
+                               link_excel='/download/erros_excel',
+                               link_csv_sem_saida='/download/sem_saida_csv',
+                               link_excel_sem_saida='/download/sem_saida_excel',
+                               regioes=regioes,
+                               region_selecionada=region,
+                               deficit_html=deficit_html,
+                               media_geral_euft=media_geral_euft)
 
-
-    return render_template('index.html', regioes=regioes)
-
+    return render_template('index.html', media_geral_euft=media_geral_euft)
 
 @app.route('/download/erros_csv')
 def download_erros_csv():
@@ -823,6 +828,7 @@ def download_erros_csv():
 def download_erros_excel():
     temp_excel_path = os.path.join(tempfile.gettempdir(), "erros_euft.xlsx")
     return send_file(temp_excel_path, as_attachment=True, download_name="Erros_EUFT.xlsx")
+
 @app.route('/download/sem_saida_csv')
 def download_sem_saida_csv():
     temp_csv_path = os.path.join(tempfile.gettempdir(), "sem_saida_euft.csv")
@@ -833,15 +839,15 @@ def download_sem_saida_excel():
     temp_excel_path = os.path.join(tempfile.gettempdir(), "sem_saida_euft.xlsx")
     return send_file(temp_excel_path, as_attachment=True, download_name="Sem_Saida_EUFT.xlsx")
 
-@app.route('/download/resultados_csv')
+@app.route('/download/results_csv')
 def download_resultados_csv():
-    temp_csv_path_resultados = os.path.join(tempfile.gettempdir(), "resultados_euft.csv")
-    return send_file(temp_csv_path_resultados, as_attachment=True, download_name="Resultados_EUFT.csv")
+    temp_csv_path_resultados = os.path.join(tempfile.gettempdir(), "results_euft.csv")
+    return send_file(temp_csv_path_resultados, as_attachment=True, download_name="Results_EUFT.csv")
 
-@app.route('/download/resultados_excel')
+@app.route('/download/results_excel')
 def download_resultados_excel():
-    temp_excel_path_resultados = os.path.join(tempfile.gettempdir(), "resultados_euft.xlsx")
-    return send_file(temp_excel_path_resultados, as_attachment=True, download_name="Resultados_EUFT.xlsx")
+    temp_excel_path_resultados = os.path.join(tempfile.gettempdir(), "results_euft.xlsx")
+    return send_file(temp_excel_path_resultados, as_attachment=True, download_name="Results_EUFT.xlsx")
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
