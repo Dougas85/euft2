@@ -622,57 +622,106 @@ def index():
             erros = erros.drop(columns=['Correto'])
 
         resultados_html = ""
+
         def extrair_lotacao(val):
             if isinstance(val, str):
                 return val
             elif isinstance(val, (list, tuple)):
                 return val[0] if len(val) > 0 else ''
             return ''
-
-        resultados_veiculo['lotacao_patrimonial'] = resultados_veiculo['Placa'].map(lambda p: extrair_lotacao(placas_to_lotacao.get(p)))
-
-
+        
+        # Adiciona a lotação patrimonial com base no dicionário
+        resultados_veiculo['lotacao_patrimonial'] = resultados_veiculo['Placa'].map(
+            lambda p: extrair_lotacao(placas_to_lotacao.get(p))
+        )
+        
+        # Monta a tabela de resultados por veículo
         for i, row in resultados_veiculo.iterrows():
             euft_percent = f"{row['EUFT'] * 100:.2f}".replace('.', ',') + '%'
-            resultados_html += f"<tr><td>{i + 1}</td><td>{row['Placa']}</td><td>{row['lotacao_patrimonial']}</td><td>{row['Dias_Corretos']}</td><td>{row['Dias_Totais']}</td><td>{row['Adicional']}</td><td>{euft_percent}</td></tr>"
-
+            resultados_html += (
+                f"<tr><td>{i + 1}</td>"
+                f"<td>{row['Placa']}</td>"
+                f"<td>{row['lotacao_patrimonial']}</td>"
+                f"<td>{row['Dias_Corretos']}</td>"
+                f"<td>{row['Dias_Totais']}</td>"
+                f"<td>{row['Adicional']}</td>"
+                f"<td>{euft_percent}</td></tr>"
+            )
+        
         # Agrupar resultados por unidade (ponderado corretamente)
         resultados_por_unidade = resultados_veiculo.groupby('lotacao_patrimonial').agg({
             'Dias_Corretos': 'sum',
             'Dias_Totais': 'sum',
             'Adicional': 'sum'
         }).reset_index()
-
+        
         # Calcular o EUFT ponderado por unidade
         resultados_por_unidade['EUFT'] = (
-                resultados_por_unidade['Dias_Corretos'] /
-                (resultados_por_unidade['Dias_Totais'] + resultados_por_unidade['Adicional'])
+            resultados_por_unidade['Dias_Corretos'] /
+            (resultados_por_unidade['Dias_Totais'] + resultados_por_unidade['Adicional'])
         ).fillna(0)
-
+        
+        # 🔹 Criar coluna formatada como percentual (para tela e exportação)
+        resultados_por_unidade['EUFT (%)'] = (
+            resultados_por_unidade['EUFT'] * 100
+        ).round(2).astype(str).str.replace('.', ',') + '%'
+        
         # Ordenar do maior para o menor
         resultados_por_unidade = resultados_por_unidade.sort_values(by='EUFT', ascending=False)
-
-        # Criar DataFrame de resultados para exportação
-        resultados_df = resultados_por_unidade.copy()
-
-        # Salvar os resultados em CSV e Excel
+        
+        # === SALVAR RESULTADOS (com EUFT formatado) ===
         temp_dir = tempfile.gettempdir()
+        
+        # Por unidade
+        temp_csv_path_unidades = os.path.join(temp_dir, "results_unidades_euft.csv")
+        temp_excel_path_unidades = os.path.join(temp_dir, "results_unidades_euft.xlsx")
+        
+        resultados_por_unidade.to_csv(
+            temp_csv_path_unidades, index=False, sep=';', encoding='utf-8-sig',
+            columns=['lotacao_patrimonial', 'Dias_Corretos', 'Dias_Totais', 'Adicional', 'EUFT (%)']
+        )
+        resultados_por_unidade.to_excel(
+            temp_excel_path_unidades, index=False,
+            columns=['lotacao_patrimonial', 'Dias_Corretos', 'Dias_Totais', 'Adicional', 'EUFT (%)']
+        )
+        
+        # Por veículo (opcional, caso também exporte individualmente)
+        resultados_veiculo['EUFT (%)'] = (
+            resultados_veiculo['EUFT'] * 100
+        ).round(2).astype(str).str.replace('.', ',') + '%'
+        
         temp_csv_path_resultados = os.path.join(temp_dir, "results_euft.csv")
         temp_excel_path_resultados = os.path.join(temp_dir, "results_euft.xlsx")
-
-        resultados_df.to_csv(temp_csv_path_resultados, index=False, encoding="utf-8-sig", sep=';')
-        resultados_df.to_excel(temp_excel_path_resultados, index=False)
-
-        # Montar tabela HTML
+        
+        resultados_veiculo.to_csv(
+            temp_csv_path_resultados, index=False, sep=';', encoding='utf-8-sig',
+            columns=['Placa', 'lotacao_patrimonial', 'Dias_Corretos', 'Dias_Totais', 'Adicional', 'EUFT (%)']
+        )
+        resultados_veiculo.to_excel(
+            temp_excel_path_resultados, index=False,
+            columns=['Placa', 'lotacao_patrimonial', 'Dias_Corretos', 'Dias_Totais', 'Adicional', 'EUFT (%)']
+        )
+        
+        # === Montar tabela HTML ===
         resultados_html += "<h3 class='mt-4'>Resultados</h3>"
         resultados_html += "<table id='unidadeTable' class='table table-bordered table-striped mt-2'>"
-        resultados_html += "<thead><tr><th>Id</th><th>Lotação Patrimonial</th><th>Lançamentos Corretos</th><th>Lançamentos Totais</th><th>Adicional</th><th>EUFT</th></tr></thead><tbody>"
-
+        resultados_html += (
+            "<thead><tr><th>Id</th><th>Lotação Patrimonial</th><th>Lançamentos Corretos</th>"
+            "<th>Lançamentos Totais</th><th>Adicional</th><th>EUFT</th></tr></thead><tbody>"
+        )
+        
         for i, row in resultados_por_unidade.iterrows():
-            euft_unidade_percent = f"{row['EUFT'] * 100:.2f}".replace('.', ',') + '%'
-            resultados_html += f"<tr><td>{i + 1}</td><td>{row['lotacao_patrimonial']}</td><td>{row['Dias_Corretos']}</td><td>{row['Dias_Totais']}</td><td>{row['Adicional']}</td><td>{euft_unidade_percent}</td></tr>"
-
+            resultados_html += (
+                f"<tr><td>{i + 1}</td>"
+                f"<td>{row['lotacao_patrimonial']}</td>"
+                f"<td>{row['Dias_Corretos']}</td>"
+                f"<td>{row['Dias_Totais']}</td>"
+                f"<td>{row['Adicional']}</td>"
+                f"<td>{row['EUFT (%)']}</td></tr>"
+            )
+        
         resultados_html += "</tbody></table>"
+
 
         erros_html = ""
         for i, row in erros.iterrows():
@@ -857,6 +906,18 @@ def download_resultados_excel():
     temp_excel_path_resultados = os.path.join(tempfile.gettempdir(), "results_euft.xlsx")
     return send_file(temp_excel_path_resultados, as_attachment=True, download_name="Results_EUFT.xlsx")
 
+# === DOWNLOAD RESULTADOS POR UNIDADE ===
+@app.route('/download/results_unidades_csv')
+def download_results_unidades_csv():
+    temp_csv_path = os.path.join(tempfile.gettempdir(), "results_unidades_euft.csv")
+    return send_file(temp_csv_path, as_attachment=True, download_name="Resultados_Unidades_EUFT.csv")
+
+@app.route('/download/results_unidades_excel')
+def download_results_unidades_excel():
+    temp_excel_path = os.path.join(tempfile.gettempdir(), "results_unidades_euft.xlsx")
+    return send_file(temp_excel_path, as_attachment=True, download_name="Resultados_Unidades_EUFT.xlsx")
+
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
+
 
