@@ -636,14 +636,21 @@ def index():
             euft_percent = f"{row['EUFT'] * 100:.2f}".replace('.', ',') + '%'
             resultados_html += f"<tr><td>{i + 1}</td><td>{row['Placa']}</td><td>{row['lotacao_patrimonial']}</td><td>{row['Dias_Corretos']}</td><td>{row['Dias_Totais']}</td><td>{row['Adicional']}</td><td>{euft_percent}</td></tr>"
 
+        # Agrupar resultados por unidade (ponderado corretamente)
         resultados_por_unidade = resultados_veiculo.groupby('lotacao_patrimonial').agg({
             'Dias_Corretos': 'sum',
             'Dias_Totais': 'sum',
-            'Adicional': 'sum',
-            'EUFT': 'mean'
-        }).reset_index().sort_values(by='EUFT', ascending=False)
+            'Adicional': 'sum'
+        }).reset_index()
 
+        # Calcular o EUFT ponderado por unidade
+        resultados_por_unidade['EUFT'] = (
+                resultados_por_unidade['Dias_Corretos'] /
+                (resultados_por_unidade['Dias_Totais'] + resultados_por_unidade['Adicional'])
+        ).fillna(0)
 
+        # Ordenar do maior para o menor
+        resultados_por_unidade = resultados_por_unidade.sort_values(by='EUFT', ascending=False)
 
         # Criar DataFrame de resultados para exportação
         resultados_df = resultados_por_unidade.copy()
@@ -656,9 +663,10 @@ def index():
         resultados_df.to_csv(temp_csv_path_resultados, index=False, encoding="utf-8-sig", sep=';')
         resultados_df.to_excel(temp_excel_path_resultados, index=False)
 
+        # Montar tabela HTML
         resultados_html += "<h3 class='mt-4'>Resultados</h3>"
         resultados_html += "<table id='unidadeTable' class='table table-bordered table-striped mt-2'>"
-        resultados_html += "<thead><tr><th>Id</th><th>Lotação Patrimonial</th><th>Lançamentos Corretos</th><th>Lançamentos Totais</th><th>Adicional</th><th>EUFT Médio</th></tr></thead><tbody>"
+        resultados_html += "<thead><tr><th>Id</th><th>Lotação Patrimonial</th><th>Lançamentos Corretos</th><th>Lançamentos Totais</th><th>Adicional</th><th>EUFT</th></tr></thead><tbody>"
 
         for i, row in resultados_por_unidade.iterrows():
             euft_unidade_percent = f"{row['EUFT'] * 100:.2f}".replace('.', ',') + '%'
@@ -851,3 +859,4 @@ def download_resultados_excel():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
+
