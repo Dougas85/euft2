@@ -214,6 +214,8 @@ def calcular_euft(df, dias_uteis_mes, placas_scudo, placas_especificas, placas_m
     df['Data Retorno'] = pd.to_datetime(df['Data Retorno'], format='%d/%m/%Y', errors='coerce')
     df['Placa'] = df['Placa'].astype(str).str.strip().str.upper()
 
+    df = df[df['Data Partida'].dt.weekday <5]
+    
     # 2) Calcular tempo e distância
     df['Tempo Utilizacao'] = df.apply(calcular_tempo_utilizacao, axis=1)
     df['Distancia Percorrida'] = df['Hod. Retorno'] - df['Hod. Partida']
@@ -260,8 +262,6 @@ def calcular_euft(df, dias_uteis_mes, placas_scudo, placas_especificas, placas_m
     resultados_por_veiculo = resultados_por_veiculo.merge(dias_registrados_por_placa, on='Placa', how='outer')
     resultados_por_veiculo['Dias_Corretos'] = resultados_por_veiculo['Dias_Corretos'].fillna(0).astype(int)
     resultados_por_veiculo['Dias_Totais'] = resultados_por_veiculo['Dias_Totais'].fillna(0).astype(int)
-
-    df = df[df['Data Partida'].dt.weekday <5]
     
     # 7) Calcular dias úteis do relatório (somente segunda a sexta)
     dias_uteis_relatorio = df.loc[
@@ -921,6 +921,7 @@ def download_results_unidades_excel():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
+
 
 
 
