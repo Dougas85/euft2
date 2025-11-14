@@ -10,6 +10,7 @@ import pytz
 from flask import Flask, request, render_template, redirect, flash
 from flask import send_file
 
+
 from placas import (
     placas_scudo2, placas_scudo7, placas_analisadas2, placas_analisadas7,
     placas_especificas2, placas_especificas7, placas_mobi2, placas_mobi7,
@@ -137,11 +138,37 @@ def verificar_placas_sem_saida(df_original, placas_analisadas):
     placas_sem_saida = placas_analisadas - placas_com_saida
     return sorted(placas_sem_saida)
 
+def verificar_placas_em_manutencao(df, placas_regiao, placas_to_lotacao):
+    """
+    Retorna um DataFrame com os veículos em manutenção apenas da região selecionada
+    """
+    # Filtra apenas veículos da região e com STATUS OS relevante
+    df_manut = df[df['Placa'].isin(placas_regiao) & df['STATUS OS'].isin(['APROVADA', 'ABERTA'])].copy()
+
+    # Normaliza colunas
+    df_manut['Lotacao'] = df_manut['Placa'].map(lambda p: placas_to_lotacao.get(p, ('', ''))[0])
+    df_manut['CAE'] = df_manut['Placa'].map(
+        lambda p: placas_to_lotacao.get(p, ('', ''))[1].replace('CAE ', '') if placas_to_lotacao.get(p) else '')
+
+    # Calcula dias parados
+    fuso_brasilia = pytz.timezone("America/Sao_Paulo")
+    hoje = datetime.now(fuso_brasilia).replace(hour=0, minute=0, second=0, microsecond=0)
+    hoje = hoje.replace(tzinfo=None)  # tz-naive
+
+    df_manut['Data Emissão'] = pd.to_datetime(df_manut['Data Emissão'], dayfirst=True, errors='coerce')
+    df_manut['Dias Parados'] = (hoje - df_manut['Data Emissão']).dt.days
+
+    return df_manut
+
+
 def veiculos_sem_retorno(df, placas_analisadas):
     df = df.copy()
     df['Data Partida'] = pd.to_datetime(df['Data Partida'], format='%d/%m/%Y', errors='coerce')
     df['Data Retorno'] = pd.to_datetime(df['Data Retorno'], format='%d/%m/%Y', errors='coerce')
     df['Placa'] = df['Placa'].str.strip().str.upper()
+
+    # 🔹 Excluir finais de semana (sábado=5, domingo=6)
+    df = df[df['Data Partida'].dt.weekday < 5]
 
     # Filtra registros com placa analisada e com saída, mas sem retorno
     df_filtrado = df[
@@ -214,8 +241,9 @@ def calcular_euft(df, dias_uteis_mes, placas_scudo, placas_especificas, placas_m
     df['Data Retorno'] = pd.to_datetime(df['Data Retorno'], format='%d/%m/%Y', errors='coerce')
     df['Placa'] = df['Placa'].astype(str).str.strip().str.upper()
 
-    df = df[df['Data Partida'].dt.weekday <5]
-    
+    # === Remover finais de semana (somente segunda a sexta) ===
+    df = df[df['Data Partida'].dt.weekday < 5].copy()
+
     # 2) Calcular tempo e distância
     df['Tempo Utilizacao'] = df.apply(calcular_tempo_utilizacao, axis=1)
     df['Distancia Percorrida'] = df['Hod. Retorno'] - df['Hod. Partida']
@@ -262,7 +290,7 @@ def calcular_euft(df, dias_uteis_mes, placas_scudo, placas_especificas, placas_m
     resultados_por_veiculo = resultados_por_veiculo.merge(dias_registrados_por_placa, on='Placa', how='outer')
     resultados_por_veiculo['Dias_Corretos'] = resultados_por_veiculo['Dias_Corretos'].fillna(0).astype(int)
     resultados_por_veiculo['Dias_Totais'] = resultados_por_veiculo['Dias_Totais'].fillna(0).astype(int)
-    
+
     # 7) Calcular dias úteis do relatório (somente segunda a sexta)
     dias_uteis_relatorio = df.loc[
         df['Data Partida'].dt.weekday < 5, 'Data Partida'
@@ -289,14 +317,25 @@ def calcular_euft(df, dias_uteis_mes, placas_scudo, placas_especificas, placas_m
             }])], ignore_index=True)
 
     # 10) Calcular EUFT
+    resultados_por_veiculo['Dias_Corretos'] = resultados_por_veiculo['Dias_Corretos'].astype(int)
+    resultados_por_veiculo['Dias_Totais'] = resultados_por_veiculo['Dias_Totais'].astype(int)
+    resultados_por_veiculo['Adicional'] = resultados_por_veiculo['Adicional'].astype(int)
+
     resultados_por_veiculo['EUFT'] = (
         resultados_por_veiculo['Dias_Corretos'] /
         (resultados_por_veiculo['Dias_Totais'] + resultados_por_veiculo['Adicional'])
-    ).fillna(0)
+    ).replace(0, pd.NA).infer_objects(copy=False).fillna(0)
+
+    # 🔹 Arredondamento exato só aqui:
+    resultados_por_veiculo['EUFT'] = resultados_por_veiculo['EUFT'].round(4)
 
     resultados_por_veiculo['EUFT (%)'] = (
-        resultados_por_veiculo['EUFT'] * 100
-    ).map(lambda x: f"{x:.2f}".replace('.', ',') + '%')
+        (resultados_por_veiculo['EUFT'] * 100)
+        .round(2)
+        .astype(str)
+        .str.replace('.', ',') + '%'
+    )
+
 
     # 11) Calcular total geral
     total_dias_corretos = resultados_por_veiculo['Dias_Corretos'].sum()
@@ -308,7 +347,16 @@ def calcular_euft(df, dias_uteis_mes, placas_scudo, placas_especificas, placas_m
         if (total_dias_totais + total_adicional) > 0 else 0
     )
 
-    media_geral_euft_percentual = f"{media_geral_euft * 100:.2f}".replace('.', ',') + '%'
+    media_geral_euft = round(media_geral_euft, 4)
+    media_geral_euft_percentual = f"{round(media_geral_euft * 100, 2):.2f}".replace('.', ',') + '%'
+
+
+    """media_geral_euft = (
+        total_dias_corretos / (total_dias_totais + total_adicional)
+        if (total_dias_totais + total_adicional) > 0 else 0
+    )
+
+    media_geral_euft_percentual = f"{media_geral_euft * 100:.2f}".replace('.', ',') + '%'"""
 
     linha_total = pd.DataFrame([{
         'Placa': 'TOTAL',
@@ -340,11 +388,6 @@ def veiculos_sem_retorno(df1, placas_analisadas):
     ].copy()
 
     return placas_sem_retorno
-
-
-   # print("Placas analisadas:", placas_analisadas[:5])
-   # print("Placas únicas no df1:", df1['Placa'].unique()[:5])
-   # print("Placas em comum:", df1['Placa'].isin(placas_analisadas).sum())
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -452,7 +495,81 @@ def index():
             df2['Placa'] = df2['Placa'].str.replace(r'\s+', '', regex=True).str.upper()
             df2['STATUS OS'] = df2['STATUS OS'].astype(str).str.strip().str.upper()
 
+            # =====================
+            # NORMALIZAÇÃO PADRÃO
+            # =====================
+
+            def normalizar_placa(p):
+                if p is None:
+                    return ""
+                p = str(p).upper().strip().replace(" ", "")
+                return p
+
+            # Corrige TODAS as chaves do dicionário para o mesmo formato
+            placas_to_lotacao_normalizado = {
+                normalizar_placa(k): v
+                for k, v in placas_to_lotacao.items()
+            }
+
+            # ======================
+            # FUNÇÕES USADAS NA TABELA DE MANUTENÇÃO
+            # ======================
+
+            def obter_lotacao_por_placa(placa):
+                chave = normalizar_placa(placa)
+                valores = placas_to_lotacao_normalizado.get(chave)
+                if not valores:
+                    return ""
+                if isinstance(valores, str):
+                    return valores.split(" - ")[0]
+                return valores[0] if len(valores) > 0 else ""
+
+            def obter_cae_por_placa(placa):
+                chave = normalizar_placa(placa)
+                valores = placas_to_lotacao_normalizado.get(chave)
+                if not valores:
+                    return ""
+                if isinstance(valores, str):
+                    partes = valores.split(" - ")
+                    return partes[1].replace("CAE ", "") if len(partes) > 1 else ""
+                return valores[1].replace("CAE ", "") if len(valores) > 1 else ""
+
             placas_em_manutencao = df2[df2['STATUS OS'].isin(['APROVADA', 'ABERTA'])]['Placa'].unique()
+
+            # === Veículos em manutenção ===
+            df_manutencao = df2[df2['STATUS OS'].isin(['APROVADA', 'ABERTA'])].copy()
+            # Filtrar veículos em manutenção para exibir apenas os da região selecionada
+            df_manutencao = df_manutencao[df_manutencao['Placa'].isin(placas_analisadas)]
+
+            # Normaliza as placas do df_manutencao
+            df_manutencao['Placa'] = df_manutencao['Placa'].apply(normalizar_placa)
+
+            # Aplica as funções (AGORA FUNCIONA)
+            df_manutencao['Lotacao'] = df_manutencao['Placa'].apply(obter_lotacao_por_placa)
+            df_manutencao['CAE'] = df_manutencao['Placa'].apply(obter_cae_por_placa)
+
+            # Converte Data Emissão
+            df_manutencao['Data Emissão'] = pd.to_datetime(df_manutencao['Data Emissão'], dayfirst=True,
+                                                           errors='coerce')
+
+            # Calcula dias parados
+            fuso_brasilia = pytz.timezone("America/Sao_Paulo")
+            hoje = datetime.now(fuso_brasilia).replace(hour=0, minute=0, second=0, microsecond=0)
+            hoje = hoje.replace(tzinfo=None)
+            df_manutencao['Dias Parados'] = (hoje - df_manutencao['Data Emissão']).dt.days
+
+
+
+            # Monta HTML
+            manutencao_html = "<h3 class='mt-4'>Veículos em Manutenção</h3>"
+            manutencao_html += "<table class='table table-bordered table-striped mt-2'>"
+            manutencao_html += "<thead><tr><th>Placa</th><th>Lotação</th><th>CAE</th><th>Data Entrada</th><th>Dias Parados</th></tr></thead><tbody>"
+
+            for _, row in df_manutencao.iterrows():
+                data_entrada = row['Data Emissão'].strftime('%d/%m/%Y') if not pd.isna(row['Data Emissão']) else ''
+                manutencao_html += f"<tr><td>{row['Placa']}</td><td>{row['Lotacao']}</td><td>{row['CAE']}</td><td>{data_entrada}</td><td>{row['Dias Parados']}</td></tr>"
+
+            manutencao_html += "</tbody></table>"
 
             # Concatena os dois DataFrames
             df_original = pd.concat([df1, df2], ignore_index=True)
@@ -623,107 +740,211 @@ def index():
         if 'Correto' in erros.columns:
             erros = erros.drop(columns=['Correto'])
 
+        # ================================
+        # LIMPAR HTML
+        # ================================
         resultados_html = ""
 
-        def extrair_lotacao(val):
+        # ================================
+        # DICIONÁRIOS DA REGIÃO
+        # (já deve estar carregado ANTES deste trecho:)
+        # placas_to_lotacao = { "ABC1234": ("AC XXXXX", "CAE 123456") ... }
+        # ================================
+
+        # ================================
+        # FUNÇÕES PADRÃO PARA LOTAÇÃO E CAE
+        # ================================
+        def get_lotacao(p):
+            """
+            Retorna somente a lotação patrimonial.
+            """
+            val = placas_to_lotacao.get(p, ("", ""))
             if isinstance(val, str):
                 return val
             elif isinstance(val, (list, tuple)):
                 return val[0] if len(val) > 0 else ''
             return ''
-        
-        # Adiciona a lotação patrimonial com base no dicionário
-        resultados_veiculo['lotacao_patrimonial'] = resultados_veiculo['Placa'].map(
-            lambda p: extrair_lotacao(placas_to_lotacao.get(p))
-        )
-        
-        # Monta a tabela de resultados por veículo
+
+        def get_cae(p):
+            """
+            Retorna somente o número do CAE sem o prefixo 'CAE '.
+            Exemplo: ('AC PALMEIRA', 'CAE 123456') → '123456'
+            """
+            val = placas_to_lotacao.get(p, ("", ""))
+            if isinstance(val, (list, tuple)) and len(val) >= 2:
+                return val[1].replace("CAE ", "")
+            return ""
+
+        # ================================
+        # ADICIONAR LOTAÇÃO E CAE NO DATAFRAME
+        # ================================
+        resultados_veiculo['lotacao_patrimonial'] = resultados_veiculo['Placa'].map(get_lotacao)
+        resultados_veiculo['CAE'] = resultados_veiculo['Placa'].map(get_cae)
+
+        # ================================
+        # GERAR TABELA HTML DETALHADA
+        # ================================
         for i, row in resultados_veiculo.iterrows():
             euft_percent = f"{row['EUFT'] * 100:.2f}".replace('.', ',') + '%'
             resultados_html += (
                 f"<tr><td>{i + 1}</td>"
                 f"<td>{row['Placa']}</td>"
                 f"<td>{row['lotacao_patrimonial']}</td>"
+                f"<td>{row['CAE']}</td>"
                 f"<td>{row['Dias_Corretos']}</td>"
                 f"<td>{row['Dias_Totais']}</td>"
                 f"<td>{row['Adicional']}</td>"
                 f"<td>{euft_percent}</td></tr>"
             )
-        
-        # Agrupar resultados por unidade (ponderado corretamente)
+
+        # ================================
+        # AGRUPAR POR UNIDADE
+        # ================================
         resultados_por_unidade = resultados_veiculo.groupby('lotacao_patrimonial').agg({
             'Dias_Corretos': 'sum',
             'Dias_Totais': 'sum',
             'Adicional': 'sum'
         }).reset_index()
-        
-        # Calcular o EUFT ponderado por unidade
+
+        # ================================
+        # BUSCAR CAE DA UNIDADE
+        # ================================
+        def buscar_cae_por_lotacao(lot):
+            for _, v in placas_to_lotacao.items():
+                if isinstance(v, (list, tuple)) and len(v) >= 2:
+                    if v[0] == lot:
+                        return v[1].replace("CAE ", "")
+            return ""
+
+        resultados_por_unidade['CAE'] = resultados_por_unidade['lotacao_patrimonial'].map(buscar_cae_por_lotacao)
+
+        # ================================
+        # CALCULAR EUFT (PONDERADO)
+        # ================================
         resultados_por_unidade['EUFT'] = (
-            resultados_por_unidade['Dias_Corretos'] /
-            (resultados_por_unidade['Dias_Totais'] + resultados_por_unidade['Adicional'])
+                resultados_por_unidade['Dias_Corretos'] /
+                (resultados_por_unidade['Dias_Totais'] + resultados_por_unidade['Adicional'])
         ).fillna(0)
-        
-        # 🔹 Criar coluna formatada como percentual (para tela e exportação)
+
         resultados_por_unidade['EUFT (%)'] = (
-            resultados_por_unidade['EUFT'] * 100
-        ).round(2).astype(str).str.replace('.', ',') + '%'
-        
-        # Ordenar do maior para o menor
+                                                     resultados_por_unidade['EUFT'] * 100
+                                             ).round(2).astype(str).replace('.', ',') + '%'
+
+        # ================================
+        # ORDENAR DO MAIOR PARA O MENOR
+        # ================================
         resultados_por_unidade = resultados_por_unidade.sort_values(by='EUFT', ascending=False)
-        
-        # === SALVAR RESULTADOS (com EUFT formatado) ===
+
+        # ================================
+        # REMOVER A COLUNA NUMÉRICA ANTES DA EXPORTAÇÃO
+        # ================================
+        resultados_por_unidade = resultados_por_unidade.drop(columns=['EUFT'], errors='ignore')
+        resultados_veiculo = resultados_veiculo.drop(columns=['EUFT'], errors='ignore')
+
+        # ================================
+        # PRONTO PARA SALVAR EM ARQUIVO
+        # ================================
         temp_dir = tempfile.gettempdir()
-        
-        # Por unidade
+
+        # === Renomear colunas para exportação ===
+        colunas_unidade_renomeadas = {
+            'lotacao_patrimonial': 'Lotação Patrimonial',
+            'CAE': 'CAE',
+            'Dias_Corretos': 'Lançamentos Corretos',
+            'Dias_Totais': 'Lançamentos Totais',
+            'Adicional': 'Adicional',
+            'EUFT (%)': 'EUFT'
+        }
+
+        colunas_veiculo_renomeadas = {
+            'Placa': 'Placa',
+            'lotacao_patrimonial': 'Lotação Patrimonial',
+            'CAE': 'CAE',
+            'Dias_Corretos': 'Lançamentos Corretos',
+            'Dias_Totais': 'Lançamentos Totais',
+            'Adicional': 'Adicional',
+            'EUFT (%)': 'EUFT'
+        }
+
+        # === Aplicar novos nomes ===
+        df_unidades_export = resultados_por_unidade.rename(columns=colunas_unidade_renomeadas)
+        df_veiculos_export = resultados_veiculo.rename(columns=colunas_veiculo_renomeadas)
+
+        # === Caminhos temporários ===
         temp_csv_path_unidades = os.path.join(temp_dir, "results_unidades_euft.csv")
         temp_excel_path_unidades = os.path.join(temp_dir, "results_unidades_euft.xlsx")
-        
-        resultados_por_unidade.to_csv(
-            temp_csv_path_unidades, index=False, sep=';', encoding='utf-8-sig',
-            columns=['lotacao_patrimonial', 'Dias_Corretos', 'Dias_Totais', 'Adicional', 'EUFT (%)']
-        )
-        resultados_por_unidade.to_excel(
-            temp_excel_path_unidades, index=False,
-            columns=['lotacao_patrimonial', 'Dias_Corretos', 'Dias_Totais', 'Adicional', 'EUFT (%)']
-        )
-        
-        # Por veículo (opcional, caso também exporte individualmente)
-        resultados_veiculo['EUFT (%)'] = (
-            resultados_veiculo['EUFT'] * 100
-        ).round(2).astype(str).str.replace('.', ',') + '%'
-        
         temp_csv_path_resultados = os.path.join(temp_dir, "results_euft.csv")
         temp_excel_path_resultados = os.path.join(temp_dir, "results_euft.xlsx")
-        
-        resultados_veiculo.to_csv(
-            temp_csv_path_resultados, index=False, sep=';', encoding='utf-8-sig',
-            columns=['Placa', 'lotacao_patrimonial', 'Dias_Corretos', 'Dias_Totais', 'Adicional', 'EUFT (%)']
-        )
-        resultados_veiculo.to_excel(
-            temp_excel_path_resultados, index=False,
-            columns=['Placa', 'lotacao_patrimonial', 'Dias_Corretos', 'Dias_Totais', 'Adicional', 'EUFT (%)']
-        )
-        
+
+        # === Exportar CSV e Excel com nomes formatados ===
+        df_unidades_export.to_csv(temp_csv_path_unidades, index=False, sep=';', encoding='utf-8-sig')
+        df_unidades_export.to_excel(temp_excel_path_unidades, index=False)
+        df_veiculos_export.to_csv(temp_csv_path_resultados, index=False, sep=';', encoding='utf-8-sig')
+        df_veiculos_export.to_excel(temp_excel_path_resultados, index=False)
+
         # === Montar tabela HTML ===
         resultados_html += "<h3 class='mt-4'>Resultados</h3>"
         resultados_html += "<table id='unidadeTable' class='table table-bordered table-striped mt-2'>"
         resultados_html += (
-            "<thead><tr><th>Id</th><th>Lotação Patrimonial</th><th>Lançamentos Corretos</th>"
-            "<th>Lançamentos Totais</th><th>Adicional</th><th>EUFT</th></tr></thead><tbody>"
+            "<thead><tr><th>Id</th><th>CAE</th><th>Lotação Patrimonial</th>"
+            "<th>Lançamentos Corretos</th><th>Lançamentos Totais</th>"
+            "<th>Adicional</th><th>EUFT</th></tr></thead><tbody>"
         )
-        
-        for i, row in resultados_por_unidade.iterrows():
-            resultados_html += (
-                f"<tr><td>{i + 1}</td>"
-                f"<td>{row['lotacao_patrimonial']}</td>"
-                f"<td>{row['Dias_Corretos']}</td>"
-                f"<td>{row['Dias_Totais']}</td>"
-                f"<td>{row['Adicional']}</td>"
-                f"<td>{row['EUFT (%)']}</td></tr>"
-            )
-        
-        resultados_html += "</tbody></table>"
 
+        # === Gerar linhas com coloração condicional (robusto e 100% correto) ===
+        for i, row in resultados_por_unidade.iterrows():
+
+            def parse_euft_percent(valor):
+                """Converte '97,35%' ou '9.735,80%' em float corretamente."""
+                if valor is None:
+                    return 0.0
+
+                valor_str = str(valor).replace('%', '').strip()
+
+                # Caso 97,35 (BR)
+                if ',' in valor_str and '.' not in valor_str:
+                    valor_str = valor_str.replace(',', '.')
+
+                # Remover espaços
+                valor_str = valor_str.replace(' ', '')
+
+                # Tratar separadores de milhares
+                partes = valor_str.split('.')
+                if len(partes) > 2:
+                    # junta tudo menos o último (que é decimal)
+                    valor_str = ''.join(partes[:-1]) + '.' + partes[-1]
+
+                try:
+                    return float(valor_str)
+                except:
+                    return 0.0
+
+            # Detectar corretamente o EUFT
+            if 'EUFT' in resultados_por_unidade.columns and pd.notna(row.get('EUFT')):
+                euft_val = float(row['EUFT']) * 100.0
+            else:
+                euft_val = parse_euft_percent(row.get('EUFT (%)', 0))
+
+            # Define cor de acordo com o valor
+            if euft_val >= 97:
+                cor = "#c6efce"  # verde
+            elif 90 <= euft_val < 97:
+                cor = "#fff3cd"  # amarelo
+            else:
+                cor = "#f8d7da"  # vermelho
+
+            resultados_html += (
+                f"<tr style='background-color: {cor};'>"
+                f"<td>{i + 1}</td>"
+                f"<td>{row.get('CAE', '')}</td>"
+                f"<td>{row.get('lotacao_patrimonial', '')}</td>"
+                f"<td>{row.get('Dias_Corretos', '')}</td>"
+                f"<td>{row.get('Dias_Totais', '')}</td>"
+                f"<td>{row.get('Adicional', '')}</td>"
+                f"<td>{row.get('EUFT (%)', '')}</td></tr>"
+            )
+
+        resultados_html += "</tbody></table>"
 
         erros_html = ""
         for i, row in erros.iterrows():
@@ -787,7 +1008,6 @@ def index():
         temp_excel_path_sem_saida = os.path.join(tempfile.gettempdir(), "sem_saida_euft.xlsx")
         sem_saida_df.to_csv(temp_csv_path_sem_saida, index=False, sep=';', encoding='utf-8-sig')
         sem_saida_df.to_excel(temp_excel_path_sem_saida, index=False)
-
 
         veiculos_sem_retorno_data = []
 
@@ -864,6 +1084,7 @@ def index():
                                grafico_labels=json.dumps(labels),
                                grafico_dados=json.dumps(valores),
                                veiculos_sem_saida=veiculos_sem_saida_html,
+                               veiculos_em_manutencao=manutencao_html,
                                veiculos_sem_retorno_data=veiculos_sem_retorno_data,
                                link_csv_resultados='/download/results_csv',
                                link_excel_resultados='/download/results_excel',
@@ -871,6 +1092,8 @@ def index():
                                link_excel='/download/erros_excel',
                                link_csv_sem_saida='/download/sem_saida_csv',
                                link_excel_sem_saida='/download/sem_saida_excel',
+			                   link_csv_manutencao='/download/manutencao_csv',
+                               link_excel_manutencao='/download/manutencao_excel',
                                regioes=regioes,
                                region_selecionada=region,
                                deficit_html=deficit_html,
@@ -919,9 +1142,16 @@ def download_results_unidades_excel():
     temp_excel_path = os.path.join(tempfile.gettempdir(), "results_unidades_euft.xlsx")
     return send_file(temp_excel_path, as_attachment=True, download_name="Resultados_Unidades_EUFT.xlsx")
 
+@app.route('/download/manutencao_csv')
+def download_manutencao_csv():
+    temp_csv_path = os.path.join(tempfile.gettempdir(), "manutencao_euft.csv")
+    return send_file(temp_csv_path, as_attachment=True, download_name="Veiculos_Manutencao_EUFT.csv")
+
+@app.route('/download/manutencao_excel')
+def download_manutencao_excel():
+    temp_excel_path = os.path.join(tempfile.gettempdir(), "manutencao_euft.xlsx")
+    return send_file(temp_excel_path, as_attachment=True, download_name="Veiculos_Manutencao_EUFT.xlsx")
+
+
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
-
-
-
-
