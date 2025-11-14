@@ -324,7 +324,7 @@ def calcular_euft(df, dias_uteis_mes, placas_scudo, placas_especificas, placas_m
     resultados_por_veiculo['EUFT'] = (
         resultados_por_veiculo['Dias_Corretos'] /
         (resultados_por_veiculo['Dias_Totais'] + resultados_por_veiculo['Adicional'])
-    ).replace(0, pd.NA).infer_objects(copy=False).fillna(0)
+    ).fillna(0)
 
     # 🔹 Arredondamento exato só aqui:
     resultados_por_veiculo['EUFT'] = resultados_por_veiculo['EUFT'].round(4)
@@ -1155,3 +1155,4 @@ def download_manutencao_excel():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
+
