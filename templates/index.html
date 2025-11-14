@@ -23,7 +23,7 @@
       {% if media_geral_euft is not none %}
         <h4>Resultado: {{ (media_geral_euft * 100)|round(2) }}%</h4>
       {% else %}
-        <h4>Desempenho: </h4>
+        <h4>Desempenho:</h4>
       {% endif %}
 
     </div>
@@ -105,6 +105,9 @@
     {% if veiculos_sem_saida %}
         <button id="showVeiculosSemSaida" class="btn btn-outline-secondary mx-1 mb-2">Veículos Sem Saída</button>
     {% endif %}
+    {% if veiculos_em_manutencao %}
+        <button id="showVeiculosManutencao" class="btn btn-outline-primary mx-1 mb-2">Veículos em Manutençao</button>
+    {% endif %}
     {% if veiculos_sem_retorno_data and veiculos_sem_retorno_data|length > 0 %}
     <button id="showVeiculosSemRetorno" class="btn btn-success mx-1 mb-2">
          Veículos Sem Retorno ({{ veiculos_sem_retorno_data|length }})
@@ -119,6 +122,7 @@
 </div>
 {% endif %}
 
+<!-- Resultados -->
 {% if resultados %}
 <div id="botoesDownloadResultados" style="display: none;" class="mt-3 text-center">
 
@@ -138,7 +142,7 @@
     </div>
 
     <div class="card-body">
-        
+
         <!-- Linha com botões e EUFT-->
         <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
             <!-- Botões de exportação -->
@@ -162,6 +166,7 @@
                         <th>#</th>
                         <th>Placa</th>
                         <th>Lotação Patrimonial</th>
+                        <th>CAE</th>
                         <th>Lançamentos Corretos</th>
                         <th>Lançamentos Totais</th>
                         <th>Adicional</th>
@@ -191,6 +196,7 @@
                     <tr>
                         <th>#</th>
                         <th>Lotação Patrimonial</th>
+                        <th>CAE</th>
                         <th>Lançamentos Corretos</th>
                         <th>Lançamentos Totais</th>
                         <th>Adicional</th>
@@ -271,6 +277,23 @@
     </div>
 </div>
 {% endif %}
+<div id="botoesDownloadManutencao" style="display: none;" class="mt-3 text-center">
+    <a href="{{ link_csv_manutencao }}" class="btn btn-outline-primary mx-1">Exportar CSV - Manutenção</a>
+    <a href="{{ link_excel_manutencao }}" class="btn btn-outline-success mx-1">Exportar Excel - Manutenção</a>
+</div>
+
+<div id="veiculosManutencaoSection" class="card table-card mt-3" style="display: none;">
+    <div class="card table-card">
+        <div class="card-header bg-warning text-dark text-center">
+            <h5 class="mb-0">Em Manutenção</h5>
+        </div>
+        <div class="card-body">
+            <div style="overflow-x: auto;">
+                {{ veiculos_em_manutencao | safe }}
+            </div>
+        </div>
+    </div>
+</div>
 
 {% if deficit_html %}
 <div id="usoPorDiaSection" class="mt-4" style="display: none;">
@@ -388,13 +411,14 @@ document.addEventListener('DOMContentLoaded', function () {
     let resultsTableInitialized = false;
     let errorsTableInitialized = false;
     let semSaidaTableInitialized = false;
+    let manutencaoTableInitialized = false;
     let unidadeTableInitialized = false;
     let veiculosSemRetornoTableInitialized = false;
     let usoPorDiaTableInitialized = false;
     let chartInstance = null;
 
     function toggleVisibility(showId) {
-        const ids = ['results', 'errors', 'graficoContainer', 'veiculosSemSaida', 'veiculosSemRetorno', 'usoPorDiaSection'];
+        const ids = ['results', 'errors', 'graficoContainer', 'veiculosSemSaida', 'veiculosSemRetorno', 'usoPorDiaSection', 'veiculosManutencaoSection'];
         ids.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.style.display = (id === showId && el.style.display !== 'block') ? 'block' : 'none';
@@ -406,6 +430,12 @@ document.addEventListener('DOMContentLoaded', function () {
         const botoesDownloadSemSaida = document.getElementById('botoesDownloadSemSaida');
         if (botoesDownloadSemSaida) botoesDownloadSemSaida.style.display = (showId === 'veiculosSemSaida' && document.getElementById('veiculosSemSaida').style.display === 'block') ? 'block' : 'none';
 
+        const botoesDownloadManutencao = document.getElementById('botoesDownloadManutencao');
+        if (botoesDownloadManutencao)
+            botoesDownloadManutencao.style.display = (showId === 'veiculosManutencaoSection' && document.getElementById('veiculosManutencaoSection').style.display === 'block') ? 'block' : 'none';
+
+
+
         const botoesDownloadResultados = document.getElementById('botoesDownloadResultados');
         if (botoesDownloadResultados) botoesDownloadResultados.style.display = (showId === 'results' && document.getElementById('results').style.display === 'block') ? 'block' : 'none';
 
@@ -415,6 +445,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const btnShowErrors = document.getElementById('showErrors');
     const btnShowGrafico = document.getElementById('showGrafico');
     const btnShowVeiculosSemSaida = document.getElementById('showVeiculosSemSaida');
+    const btnShowVeiculosManutencao = document.getElementById('showVeiculosManutencao');
     const btnShowVeiculosSemRetorno = document.getElementById('showVeiculosSemRetorno');
     const btnShowUsoPorDia = document.getElementById('showUsoPorDia');
 
@@ -498,6 +529,25 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+
+    if (btnShowVeiculosManutencao) {
+    btnShowVeiculosManutencao.addEventListener('click', () => {
+        toggleVisibility('veiculosManutencaoSection');
+
+        if (!manutencaoTableInitialized && $('#veiculosManutencaoSection table').length) {
+            $('#veiculosManutencaoSection table').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json'
+                },
+                paging: true,
+                searching: true,
+                ordering: true,
+                order: [[0, 'asc']]
+            });
+            manutencaoTableInitialized = true;
+        }
+    });
+}
 
     if (!usoPorDiaTableInitialized && $('#usoPorDiaTable').length) {
         $('#usoPorDiaTable').DataTable({
@@ -658,8 +708,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
 </body>
 </html>
-
-
 
 
 
