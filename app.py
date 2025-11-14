@@ -558,7 +558,15 @@ def index():
             hoje = hoje.replace(tzinfo=None)
             df_manutencao['Dias Parados'] = (hoje - df_manutencao['Data Emissão']).dt.days
 
+			# ============================
+            # SALVAR OS ARQUIVOS TEMPORÁRIOS (CSV e EXCEL)
+            # ============================
 
+            temp_csv_path_manutencao = os.path.join(tempfile.gettempdir(), "manutencao_euft.csv")
+            temp_excel_path_manutencao = os.path.join(tempfile.gettempdir(), "manutencao_euft.xlsx")
+
+            df_manutencao.to_csv(temp_csv_path_manutencao, index=False, sep=';', encoding='utf-8-sig')
+            df_manutencao.to_excel(temp_excel_path_manutencao, index=False)
 
             # Monta HTML
             manutencao_html = "<h3 class='mt-4'>Veículos em Manutenção</h3>"
@@ -1155,4 +1163,5 @@ def download_manutencao_excel():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
+
 
