@@ -389,6 +389,37 @@ def veiculos_sem_retorno(df1, placas_analisadas):
 
     return placas_sem_retorno
 
+# ======================
+# FUNÇÕES USADAS NA TABELA DE MANUTENÇÃO
+# ======================
+
+def obter_lotacao_por_placa(placa):
+    chave = normalizar_placa(placa)
+    valores = placas_to_lotacao_normalizado.get(chave)
+
+    if not valores:
+        return ""
+
+    if isinstance(valores, str):
+        return valores.split(" - ")[0]
+
+    return valores[0] if len(valores) > 0 else ""
+
+
+def obter_cae_por_placa(placa):
+    chave = normalizar_placa(placa)
+    valores = placas_to_lotacao_normalizado.get(chave)
+
+    if not valores:
+        return ""
+
+    if isinstance(valores, str):
+        partes = valores.split(" - ")
+        return partes[1].replace("CAE ", "") if len(partes) > 1 else ""
+
+    return valores[1].replace("CAE ", "") if len(valores) > 1 else ""
+
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     placas_scudo = []
@@ -514,25 +545,6 @@ def index():
             # ======================
             # FUNÇÕES USADAS NA TABELA DE MANUTENÇÃO
 			# ======================
-			
-			def obter_lotacao_por_placa(placa):
-			    chave = normalizar_placa(placa)
-			    valores = placas_to_lotacao_normalizado.get(chave)
-			    if not valores:
-			        return ""
-			    if isinstance(valores, str):
-			        return valores.split(" - ")[0]
-			    return valores[0] if len(valores) > 0 else ""
-			
-			def obter_cae_por_placa(placa):
-			    chave = normalizar_placa(placa)
-			    valores = placas_to_lotacao_normalizado.get(chave)
-			    if not valores:
-			        return ""
-			    if isinstance(valores, str):
-			        partes = valores.split(" - ")
-			        return partes[1].replace("CAE ", "") if len(partes) > 1 else ""
-			    return valores[1].replace("CAE ", "") if len(valores) > 1 else ""
 			
 			# Placas que tiveram saída no período analisado
 			placas_com_saida = (
@@ -1189,6 +1201,7 @@ def download_manutencao_excel():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
+
 
 
 
