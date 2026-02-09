@@ -513,51 +513,67 @@ def index():
 
             # ======================
             # FUNÇÕES USADAS NA TABELA DE MANUTENÇÃO
-            # ======================
-
-            def obter_lotacao_por_placa(placa):
-                chave = normalizar_placa(placa)
-                valores = placas_to_lotacao_normalizado.get(chave)
-                if not valores:
-                    return ""
-                if isinstance(valores, str):
-                    return valores.split(" - ")[0]
-                return valores[0] if len(valores) > 0 else ""
-
-            def obter_cae_por_placa(placa):
-                chave = normalizar_placa(placa)
-                valores = placas_to_lotacao_normalizado.get(chave)
-                if not valores:
-                    return ""
-                if isinstance(valores, str):
-                    partes = valores.split(" - ")
-                    return partes[1].replace("CAE ", "") if len(partes) > 1 else ""
-                return valores[1].replace("CAE ", "") if len(valores) > 1 else ""
-
-			placas_com_saida = (df1['Placa'].apply(normalizar_placa).unique())
-				
-			placas_em_manutencao = df2[df2['STATUS OS'].isin(['APROVADA', 'ABERTA'])]['Placa'].unique()
-
-            # === Veículos em manutenção ===
-            df_manutencao = df2[df2['STATUS OS'].isin(['APROVADA', 'ABERTA'])].copy()
-            # Filtrar veículos em manutenção para exibir apenas os da região selecionada
-            df_manutencao = df_manutencao[df_manutencao['Placa'].isin(placas_analisadas)]
-
-            # Normaliza as placas do df_manutencao
-            df_manutencao['Placa'] = df_manutencao['Placa'].apply(normalizar_placa)
-
-			# EXCLUI veículos que tiveram saída no período
+			# ======================
+			
+			def obter_lotacao_por_placa(placa):
+			    chave = normalizar_placa(placa)
+			    valores = placas_to_lotacao_normalizado.get(chave)
+			    if not valores:
+			        return ""
+			    if isinstance(valores, str):
+			        return valores.split(" - ")[0]
+			    return valores[0] if len(valores) > 0 else ""
+			
+			def obter_cae_por_placa(placa):
+			    chave = normalizar_placa(placa)
+			    valores = placas_to_lotacao_normalizado.get(chave)
+			    if not valores:
+			        return ""
+			    if isinstance(valores, str):
+			        partes = valores.split(" - ")
+			        return partes[1].replace("CAE ", "") if len(partes) > 1 else ""
+			    return valores[1].replace("CAE ", "") if len(valores) > 1 else ""
+			
+			# Placas que tiveram saída no período analisado
+			placas_com_saida = (
+			    df1['Placa']
+			    .apply(normalizar_placa)
+			    .dropna()
+			    .unique()
+			)
+			
+			# Placas em manutenção (OS aberta/aprovada)
+			placas_em_manutencao = (
+			    df2[df2['STATUS OS'].isin(['APROVADA', 'ABERTA'])]['Placa']
+			    .apply(normalizar_placa)
+			    .unique()
+			)
+			
+			# === Veículos em manutenção ===
+			df_manutencao = df2[df2['STATUS OS'].isin(['APROVADA', 'ABERTA'])].copy()
+			
+			# Filtrar veículos em manutenção para exibir apenas os da região selecionada
+			df_manutencao = df_manutencao[df_manutencao['Placa'].isin(placas_analisadas)]
+			
+			# Normaliza as placas do df_manutencao
+			df_manutencao['Placa'] = df_manutencao['Placa'].apply(normalizar_placa)
+			
+			# 🔴 EXCLUI veículos que tiveram saída no período
 			df_manutencao = df_manutencao[
-				~df_manutencao['Placa'].isin(placas_com_saida)
+			    ~df_manutencao['Placa'].isin(placas_com_saida)
 			]
+			
+			# Aplica as funções
+			df_manutencao['Lotacao'] = df_manutencao['Placa'].apply(obter_lotacao_por_placa)
+			df_manutencao['CAE'] = df_manutencao['Placa'].apply(obter_cae_por_placa)
+			
+			# Converte Data Emissão
+			df_manutencao['Data Emissão'] = pd.to_datetime(
+			    df_manutencao['Data Emissão'],
+			    dayfirst=True,
+			    errors='coerce'
+			)
 
-            # Aplica as funções (AGORA FUNCIONA)
-            df_manutencao['Lotacao'] = df_manutencao['Placa'].apply(obter_lotacao_por_placa)
-            df_manutencao['CAE'] = df_manutencao['Placa'].apply(obter_cae_por_placa)
-
-            # Converte Data Emissão
-            df_manutencao['Data Emissão'] = pd.to_datetime(df_manutencao['Data Emissão'], dayfirst=True,
-                                                           errors='coerce')
 
             # Calcula dias parados
             fuso_brasilia = pytz.timezone("America/Sao_Paulo")
@@ -1173,6 +1189,7 @@ def download_manutencao_excel():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
+
 
 
 
