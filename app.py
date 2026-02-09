@@ -558,9 +558,7 @@ def index():
 			df_manutencao['Placa'] = df_manutencao['Placa'].apply(normalizar_placa)
 			
 			# 🔴 EXCLUI veículos que tiveram saída no período
-			df_manutencao = df_manutencao[
-			    ~df_manutencao['Placa'].isin(placas_com_saida)
-			]
+			df_manutencao = df_manutencao[~df_manutencao['Placa'].isin(placas_com_saida)]
 			
 			# Aplica as funções
 			df_manutencao['Lotacao'] = df_manutencao['Placa'].apply(obter_lotacao_por_placa)
@@ -1187,6 +1185,7 @@ def download_manutencao_excel():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
+
 
 
 
