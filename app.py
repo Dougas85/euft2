@@ -534,7 +534,13 @@ def index():
                     return partes[1].replace("CAE ", "") if len(partes) > 1 else ""
                 return valores[1].replace("CAE ", "") if len(valores) > 1 else ""
 
-            placas_em_manutencao = df2[df2['STATUS OS'].isin(['APROVADA', 'ABERTA'])]['Placa'].unique()
+			placas_com_saida = (
+				df1['Placa']
+				.apply(normalizar_placa)
+				.unique()
+			)
+				
+			placas_em_manutencao = df2[df2['STATUS OS'].isin(['APROVADA', 'ABERTA'])]['Placa'].unique()
 
             # === Veículos em manutenção ===
             df_manutencao = df2[df2['STATUS OS'].isin(['APROVADA', 'ABERTA'])].copy()
@@ -543,6 +549,11 @@ def index():
 
             # Normaliza as placas do df_manutencao
             df_manutencao['Placa'] = df_manutencao['Placa'].apply(normalizar_placa)
+
+			# EXCLUI veículos que tiveram saída no período
+			df_manutencao = df_manutencao[
+				~df_manutencao['Placa'].isin(placas_com_saida)
+			]
 
             # Aplica as funções (AGORA FUNCIONA)
             df_manutencao['Lotacao'] = df_manutencao['Placa'].apply(obter_lotacao_por_placa)
@@ -567,6 +578,9 @@ def index():
 
             df_manutencao.to_csv(temp_csv_path_manutencao, index=False, sep=';', encoding='utf-8-sig')
             df_manutencao.to_excel(temp_excel_path_manutencao, index=False)
+
+			print("Manutenção final:", df_manutencao['Placa'].unique())
+			print("Placas com saída:", placas_com_saida)
 
             # Monta HTML
             manutencao_html = "<h3 class='mt-4'>Veículos em Manutenção</h3>"
@@ -1163,5 +1177,6 @@ def download_manutencao_excel():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
+
 
 
