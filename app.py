@@ -545,19 +545,11 @@ def index():
             # ======================
             # FUNÇÕES USADAS NA TABELA DE MANUTENÇÃO
 			# ======================
-			
 			# Placas que tiveram saída no período analisado
 			placas_com_saida = (
 			    df1['Placa']
 			    .apply(normalizar_placa)
 			    .dropna()
-			    .unique()
-			)
-			
-			# Placas em manutenção (OS aberta/aprovada)
-			placas_em_manutencao = (
-			    df2[df2['STATUS OS'].isin(['APROVADA', 'ABERTA'])]['Placa']
-			    .apply(normalizar_placa)
 			    .unique()
 			)
 			
@@ -585,6 +577,9 @@ def index():
 			    dayfirst=True,
 			    errors='coerce'
 			)
+
+		
+ 
 
 
             # Calcula dias parados
@@ -1201,6 +1196,7 @@ def download_manutencao_excel():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
+
 
 
 
