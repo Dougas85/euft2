@@ -419,6 +419,12 @@ def obter_cae_por_placa(placa):
 
     return valores[1].replace("CAE ", "") if len(valores) > 1 else ""
 
+def normalizar_placa(p):
+    if p is None:
+        return ""
+    return str(p).upper().strip().replace(" ", "")
+
+
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -1195,6 +1201,7 @@ def download_manutencao_excel():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
+
 
 
 
