@@ -600,9 +600,6 @@ def index():
             df_manutencao.to_csv(temp_csv_path_manutencao, index=False, sep=';', encoding='utf-8-sig')
             df_manutencao.to_excel(temp_excel_path_manutencao, index=False)
 
-			print("Manutenção final:", df_manutencao['Placa'].unique())
-			print("Placas com saída:", placas_com_saida)
-
             # Monta HTML
             manutencao_html = "<h3 class='mt-4'>Veículos em Manutenção</h3>"
             manutencao_html += "<table class='table table-bordered table-striped mt-2'>"
@@ -1198,6 +1195,7 @@ def download_manutencao_excel():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
+
 
 
 
