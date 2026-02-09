@@ -415,6 +415,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let unidadeTableInitialized = false;
     let veiculosSemRetornoTableInitialized = false;
     let usoPorDiaTableInitialized = false;
+    const MANUTENCAO_ATIVA = false;
     let chartInstance = null;
 
     function toggleVisibility(showId) {
@@ -530,6 +531,8 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    /* BLOCO DESATIVADO TEMPORARIAMENTE - Ajuste no quantitativo de manutenção
+
     if (btnShowVeiculosManutencao) {
     btnShowVeiculosManutencao.addEventListener('click', () => {
         toggleVisibility('veiculosManutencaoSection');
@@ -548,6 +551,42 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 }
+*/
+
+    if (btnShowVeiculosManutencao) {
+    btnShowVeiculosManutencao.addEventListener('click', (e) => {
+        e.preventDefault();
+
+        // Se a manutenção estiver desativada
+        if (!MANUTENCAO_ATIVA) {
+            toggleVisibility(null);
+
+            alert(
+                '⚠️ A visualização de veículos em manutenção está temporariamente desativada para ajustes na lógica de amostragem.'
+            );
+            return;
+        }
+
+        // =====================
+        // BLOCO ATIVO (FUTURO)
+        // =====================
+        toggleVisibility('veiculosManutencaoSection');
+
+        if (!manutencaoTableInitialized && $('#veiculosManutencaoSection table').length) {
+            $('#veiculosManutencaoSection table').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json'
+                },
+                paging: true,
+                searching: true,
+                ordering: true,
+                order: [[0, 'asc']]
+            });
+            manutencaoTableInitialized = true;
+        }
+    });
+}
+    
 
     if (!usoPorDiaTableInitialized && $('#usoPorDiaTable').length) {
         $('#usoPorDiaTable').DataTable({
@@ -708,6 +747,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 </body>
 </html>
+
 
 
 
