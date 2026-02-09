@@ -534,11 +534,7 @@ def index():
                     return partes[1].replace("CAE ", "") if len(partes) > 1 else ""
                 return valores[1].replace("CAE ", "") if len(valores) > 1 else ""
 
-			placas_com_saida = (
-				df1['Placa']
-				.apply(normalizar_placa)
-				.unique()
-			)
+			placas_com_saida = (df1['Placa'].apply(normalizar_placa).unique())
 				
 			placas_em_manutencao = df2[df2['STATUS OS'].isin(['APROVADA', 'ABERTA'])]['Placa'].unique()
 
@@ -1177,6 +1173,7 @@ def download_manutencao_excel():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
+
 
 
 
