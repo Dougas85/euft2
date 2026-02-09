@@ -546,12 +546,7 @@ def index():
             # FUNÇÕES USADAS NA TABELA DE MANUTENÇÃO
 			# ======================
 			# Placas que tiveram saída no período analisado
-			placas_com_saida = (
-			    df1['Placa']
-			    .apply(normalizar_placa)
-			    .dropna()
-			    .unique()
-			)
+			placas_com_saida = (df1['Placa'].apply(normalizar_placa).dropna().unique())
 			
 			# === Veículos em manutenção ===
 			df_manutencao = df2[df2['STATUS OS'].isin(['APROVADA', 'ABERTA'])].copy()
@@ -577,10 +572,6 @@ def index():
 			    dayfirst=True,
 			    errors='coerce'
 			)
-
-		
- 
-
 
             # Calcula dias parados
             fuso_brasilia = pytz.timezone("America/Sao_Paulo")
@@ -1196,6 +1187,7 @@ def download_manutencao_excel():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
+
 
 
 
