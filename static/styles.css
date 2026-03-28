@@ -1,200 +1,289 @@
-body {
-    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #212529;
-    font-size: 15px;
+/* ================================================================
+   EUFT — Estilos Modernos e Profissionais
+   ================================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+
+:root {
+    --navy:      #0a1628;
+    --blue:      #1a3a6b;
+    --accent:    #2563eb;
+    --accent2:   #3b82f6;
+    --light:     #e8f0fe;
+    --muted:     #64748b;
+    --surface:   #f8faff;
+    --white:     #ffffff;
+    --border:    #dde5f5;
+    --success:   #16a34a;
+    --warning:   #d97706;
+    --danger:    #dc2626;
+    --green-bg:  #dcfce7;
+    --yellow-bg: #fef9c3;
+    --red-bg:    #fee2e2;
 }
 
+/* ── RESET & BASE ── */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+    font-family: 'Sora', 'Segoe UI', sans-serif;
+    background: var(--surface);
+    color: var(--navy);
+    font-size: 14.5px;
+    min-height: 100vh;
+    position: relative;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(37,99,235,0.10) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 40% at 90% 80%, rgba(26,58,107,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* ── NAVBAR ── */
 .navbar {
-    background-color: #003366 !important;
+    background: linear-gradient(135deg, var(--navy) 0%, var(--blue) 100%) !important;
+    padding: 14px 24px;
+    box-shadow: 0 4px 20px rgba(10,22,40,0.25);
+    position: relative;
+    z-index: 10;
 }
 
 #euft-title {
-    font-weight: bold;
-    font-size: 1.8rem;
+    font-weight: 800;
+    font-size: 1.4rem;
     color: #ffffff !important;
-    animation: fadeIn 2s ease-in-out;
+    letter-spacing: 0.04em;
     text-align: center;
+    animation: fadeDown 0.7s ease both;
 }
 
-.fade-in-slow {
-    opacity: 0;
-    animation: fadeInSlow 2s forwards;
-}
-
-@keyframes fadeInSlow {
-    to {
-        opacity: 1;
-    }
-}
-
-.blink {
-    animation: blink 1s step-start infinite;
-}
-
-@keyframes blink {
-    50% {
-        opacity: 0;
-    }
-}
-
-/* Cards com animação suave */
+/* ── CARDS ── */
 .card.central-card,
 .table-card {
-    max-width: 980px;
+    max-width: 1020px;
     margin: 0 auto;
-    border-radius: 25px;
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-    animation: fadeInCard 0.8s ease-in-out, fadeIn 1.5s forwards;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    opacity: 0;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 24px rgba(10,22,40,0.08);
+    animation: fadeUp 0.6s ease both;
+    transition: box-shadow 0.3s ease;
+    background: var(--white);
+    opacity: 1;
 }
 
 .card.central-card:hover,
 .table-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 8px 32px rgba(10,22,40,0.13);
 }
 
-@keyframes fadeInCard {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+/* ── CARD HEADER ── */
+.card-header {
+    background: linear-gradient(135deg, var(--blue) 0%, var(--navy) 100%);
+    color: white;
+    border-radius: 18px 18px 0 0 !important;
+    padding: 18px 24px;
+    border: none;
 }
 
-@keyframes fadeIn {
-    to {
-        opacity: 1;
-    }
+.card-header h4,
+.card-header h5 {
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    margin: 0;
+    transition: color 0.3s ease;
 }
 
-/* Botões */
+.card-header h4:hover,
+.card-header h5:hover { color: #93c5fd; }
+
+.card-header.bg-warning {
+    background: linear-gradient(135deg, #d97706, #b45309) !important;
+    color: white !important;
+}
+
+.card-header.bg-warning .text-dark { color: white !important; }
+
+/* ── CARD BODY ── */
+.card-body {
+    background: var(--white);
+    padding: 28px 32px;
+    border-radius: 0 0 18px 18px;
+}
+
+/* ── SELECT ── */
+select.form-select {
+    border-radius: 12px;
+    padding: 12px 20px;
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    box-shadow: 0 2px 8px rgba(10,22,40,0.06);
+    font-size: 0.95rem;
+    font-family: 'Sora', sans-serif;
+    transition: all 0.25s ease;
+    color: var(--navy);
+}
+
+select.form-select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+    outline: none;
+}
+
+/* ── FILE INPUT ── */
+.form-control[type="file"] {
+    border-radius: 12px;
+    border: 1.5px solid var(--border);
+    padding: 10px 16px;
+    font-family: 'Sora', sans-serif;
+    font-size: 0.88rem;
+    transition: border-color 0.25s ease;
+    background: var(--surface);
+}
+
+.form-control[type="file"]:focus,
+.form-control[type="file"]:hover {
+    border-color: var(--accent);
+    outline: none;
+}
+
+/* ── BUTTONS ── */
 .btn,
 .btn-custom {
-    border-radius: 30px;
-    padding: 10px 20px;
-    font-weight: bold;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    opacity: 0;
-    animation: fadeInBtn 2s forwards;
-}
-
-.btn-custom {
-    padding: 10px 25px;
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-    transition: all 0.2s ease-in-out;
+    border-radius: 10px;
+    padding: 10px 22px;
+    font-weight: 600;
+    font-family: 'Sora', sans-serif;
+    font-size: 0.88rem;
+    transition: all 0.25s ease;
+    box-shadow: 0 2px 8px rgba(10,22,40,0.08);
+    letter-spacing: 0.02em;
+    opacity: 1;
 }
 
 .btn:hover,
 .btn-custom:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
-    background-color: #003366;
-    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(10,22,40,0.18);
 }
 
 .btn:active,
 .btn-custom:active {
-    transform: translateY(3px);
-    box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.3);
+    transform: translateY(0);
+    box-shadow: inset 0 2px 5px rgba(10,22,40,0.15);
 }
 
-@keyframes fadeInBtn {
-    to {
-        opacity: 1;
-    }
+/* Primary */
+.btn-primary {
+    background: linear-gradient(135deg, var(--accent), var(--blue));
+    border: none;
+    color: white;
 }
 
-/* Botões outline */
-.btn-outline-success {
-    border-color: #28a745;
-    color: #28a745;
+.btn-primary:hover {
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    color: white;
 }
 
-.btn-outline-success:hover {
-    background-color: #28a745;
-    color: #fff;
-}
-
+/* Outline variants */
 .btn-outline-info {
-    border-color: #17a2b8;
-    color: #17a2b8;
+    border: 1.5px solid #0891b2;
+    color: #0891b2;
+    background: transparent;
 }
-
 .btn-outline-info:hover {
-    background-color: #17a2b8;
-    color: #fff;
+    background: #0891b2;
+    color: white;
+    border-color: #0891b2;
 }
 
 .btn-outline-danger {
-    border-color: #dc3545;
-    color: #dc3545;
+    border: 1.5px solid var(--danger);
+    color: var(--danger);
+    background: transparent;
 }
-
 .btn-outline-danger:hover {
-    background-color: #dc3545;
-    color: #fff;
+    background: var(--danger);
+    color: white;
+    border-color: var(--danger);
 }
 
 .btn-outline-warning {
-    border-color: #ffc107;
-    color: #ffc107;
+    border: 1.5px solid var(--warning);
+    color: var(--warning);
+    background: transparent;
 }
-
 .btn-outline-warning:hover {
-    background-color: #ffc107;
-    color: #212529;
-}
-
-/* Card */
-.card-header {
-    background-color: #003366;
+    background: var(--warning);
     color: white;
-    border-radius: 20px 20px 0 0;
-    padding: 15px;
+    border-color: var(--warning);
 }
 
-.card-header h5 {
-    transition: color 0.3s ease;
+.btn-outline-secondary {
+    border: 1.5px solid var(--muted);
+    color: var(--muted);
+    background: transparent;
+}
+.btn-outline-secondary:hover {
+    background: var(--muted);
+    color: white;
+    border-color: var(--muted);
 }
 
-.card-header h5:hover {
-    color: #ffc107;
+.btn-outline-primary {
+    border: 1.5px solid var(--accent);
+    color: var(--accent);
+    background: transparent;
+}
+.btn-outline-primary:hover {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
 }
 
-.card-body {
-    background-color: #ffffff;
-    padding: 30px;
-    border-radius: 0 0 20px 20px;
+.btn-outline-success {
+    border: 1.5px solid var(--success);
+    color: var(--success);
+    background: transparent;
+}
+.btn-outline-success:hover {
+    background: var(--success);
+    color: white;
+    border-color: var(--success);
 }
 
-/* Select */
-select.form-select {
-    border-radius: 25px;
-    padding: 10px 20px;
-    background-color: #ffffff;
-    border: 2px solid #ccc;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    font-size: 1rem;
-    transition: all 0.3s ease;
+.btn-success {
+    background: linear-gradient(135deg, #16a34a, #15803d);
+    border: none;
+    color: white;
+}
+.btn-success:hover {
+    background: linear-gradient(135deg, #15803d, #166534);
+    color: white;
 }
 
-select.form-select:focus {
-    border-color: #003366;
-    box-shadow: 0 0 0 0.2rem rgba(0, 51, 102, 0.25);
+/* ── PROGRESS BAR ── */
+.progress {
+    border-radius: 8px;
+    height: 10px;
+    background: var(--border);
 }
 
-/* Tabela */
+.progress-bar {
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+/* ── TABLES ── */
 .table-card {
     border-radius: 20px;
     overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .responsive-table-container,
@@ -206,110 +295,170 @@ select.form-select:focus {
 table {
     width: 100%;
     border-collapse: collapse;
+    font-size: 0.85rem;
 }
 
 table thead th {
-    background-color: #003366;
-    color: white;
+    background: var(--navy);
+    color: rgba(255,255,255,0.88);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 13px 14px;
     text-align: center;
+    border: none;
+    white-space: nowrap;
 }
 
-table tbody tr:hover {
-    background-color: #f1f1f1;
+table tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s ease;
 }
 
-/* Rodapé */
+table tbody tr:last-child { border-bottom: none; }
+
+table tbody td {
+    padding: 11px 14px;
+    vertical-align: middle;
+    color: var(--navy);
+    border: none;
+}
+
+table tbody tr:hover { background: var(--light) !important; }
+
+/* Row color classes */
+.linha-verde  { background-color: var(--green-bg)  !important; }
+.linha-amarela { background-color: var(--yellow-bg) !important; }
+.linha-vermelha { background-color: var(--red-bg)   !important; }
+.table-danger  { background-color: var(--red-bg)    !important; }
+
+/* DataTables overrides */
+.dataTables_wrapper .dataTables_filter input {
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-family: 'Sora', sans-serif;
+    font-size: 0.85rem;
+    transition: border-color 0.2s ease;
+}
+
+.dataTables_wrapper .dataTables_filter input:focus {
+    border-color: var(--accent);
+    outline: none;
+}
+
+.dataTables_wrapper .dataTables_length select {
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 4px 8px;
+    font-family: 'Sora', sans-serif;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    border-radius: 8px !important;
+    font-family: 'Sora', sans-serif;
+    font-size: 0.82rem;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background: var(--accent) !important;
+    border-color: var(--accent) !important;
+    color: white !important;
+}
+
+/* ── EUFT RESULT CARD ── */
+.card.text-center.shadow {
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 20px rgba(10,22,40,0.08) !important;
+}
+
+.card.text-center .card-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.card.text-center h2 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 2.4rem;
+    font-weight: 700;
+    color: var(--success);
+}
+
+/* ── FOOTER ── */
 .footer {
-    background-color: #003366 !important;
+    background: linear-gradient(135deg, var(--navy), var(--blue)) !important;
     color: white;
     text-align: center;
+    padding: 16px;
+    margin-top: 60px;
 }
 
 .footer .text-muted {
-    color: #ffffff !important;
-    font-size: 0.9rem;
+    color: rgba(255,255,255,0.7) !important;
+    font-size: 0.82rem;
+    font-weight: 300;
+    letter-spacing: 0.04em;
 }
 
-/* Margens utilitárias */
-.mt-3, .mt-4, .mt-5 {
-    margin-top: 1.5rem !important;
+/* ── FORM LABEL ── */
+.form-label.fw-bold {
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
 }
 
-.me-2 {
-    margin-right: 0.5rem !important;
+/* ── FORM TEXT ── */
+.form-text.text-muted {
+    font-size: 0.78rem;
+    color: var(--muted) !important;
+    font-family: 'JetBrains Mono', monospace;
 }
 
-.gap-2 {
-    gap: 0.5rem;
+/* ── CHECKBOX ── */
+.form-check-input:checked {
+    background-color: var(--accent);
+    border-color: var(--accent);
 }
 
-/* Responsividade */
-@media (max-width: 1200px) {
-    .table {
-        max-width: 90%;
-    }
+/* ── ANIMATIONS ── */
+@keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-14px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── CHART ── */
+#graficoImpacto { height: 400px !important; }
+
+/* ── GAP & UTILITIES ── */
+.gap-2 { gap: 0.6rem; }
+.mt-3, .mt-4, .mt-5 { margin-top: 1.5rem !important; }
+.me-2 { margin-right: 0.5rem !important; }
+
+/* ── RESPONSIVO ── */
 @media (max-width: 768px) {
-    .central-card, .table-card {
-        padding: 15px;
-        max-width: 92%;
-    }
-
-    .fade-in-slow {
-        font-size: 40px;
-    }
-
-    #euft-title {
-        font-size: 18px;
-    }
+    .card.central-card, .table-card { max-width: 96%; }
+    #euft-title { font-size: 1.1rem; }
+    .card-body { padding: 18px 16px; }
 }
 
-@media (max-width: 480px) {
-    .central-card, .table-card {
-        padding: 15px;
-        width: 95%;
-    }
-
-    .fade-in-slow {
-        font-size: 30px;
-    }
-
-    #euft-title {
-        font-size: 16px;
-    }
-
-    .btn-success {
-        padding: 8px 15px;
-    }
-}
-
-/* Gráfico */
-#graficoImpacto {
-    height: 400px !important;
-}
-
-/* Ajuste responsivo para botões e selects em telas pequenas */
 @media (max-width: 576px) {
-    .btn,
-    .btn-custom,
-    select.form-select {
+    .btn, .btn-custom, select.form-select {
         width: 100% !important;
-        max-width: 100%;
-        font-size: 0.9rem;
-        padding: 10px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        font-size: 0.88rem;
     }
-
-    .btn-custom {
-        padding: 10px 15px;
-    }
-
-    .form-group,
-    .form-select {
-        margin-bottom: 10px;
-    }
+    #euft-title { font-size: 1rem; }
 }
-
