@@ -417,8 +417,13 @@ def index():
 
             # ── [AJUSTE] Identificar placas com saída HOJE ──
             fuso_brasilia = pytz.timezone("America/Sao_Paulo")
-            hoje_data = datetime.now(fuso_brasilia).date()
-            placas_com_saida_hoje = df1[df1['Data Partida'].dt.date == hoje_data]['Placa'].unique()
+            placas_com_saida_hoje = set(
+                df1[df1['Data Partida'].notna()]['Placa']
+                .astype(str)
+                .str.strip()
+                .str.upper()
+                .str.replace(r'\s+', '', regex=True)
+            )
 
             # ── Normalização df2 ──
             df2['Placa'] = df2['Placa'].str.replace(r'\s+', '', regex=True).str.upper()
@@ -463,11 +468,13 @@ def index():
             df_manutencao = df_manutencao[~df_manutencao['Placa'].isin(placas_com_saida_hoje)]
             # Filtra apenas da região selecionada
             df_manutencao = df_manutencao[df_manutencao['Placa'].isin(placas_analisadas)]
+            # Remove duplicatas mantendo o registro com OS mais recente por placa
+            df_manutencao['Data Emissão'] = pd.to_datetime(df_manutencao['Data Emissão'], dayfirst=True, errors='coerce')
+            df_manutencao = df_manutencao.sort_values('Data Emissão', ascending=False).drop_duplicates(subset=['Placa'], keep='first')
 
             df_manutencao['Placa'] = df_manutencao['Placa'].apply(normalizar_placa)
             df_manutencao['Lotacao'] = df_manutencao['Placa'].apply(obter_lotacao_por_placa)
             df_manutencao['CAE'] = df_manutencao['Placa'].apply(obter_cae_por_placa)
-            df_manutencao['Data Emissão'] = pd.to_datetime(df_manutencao['Data Emissão'], dayfirst=True, errors='coerce')
 
             hoje_naive = datetime.now(fuso_brasilia).replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=None)
             df_manutencao['Dias Parados'] = (hoje_naive - df_manutencao['Data Emissão']).dt.days
