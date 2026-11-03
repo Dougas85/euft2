@@ -404,7 +404,7 @@ def index():
             file2.save(path2)
 
             # ── Leitura dos arquivos ──
-            df1 = pd.read_csv(path1, delimiter=';', encoding='utf-8')
+            df1 = pd.read_csv(path1, delimiter=';', skiprows=3, encoding='utf-8')
             df1['Data Retorno'] = df1['Data Retorno'].astype(str).str.strip().replace('', pd.NA)
             df1['Hora Retorno'] = df1['Hora Retorno'].astype(str).str.strip().replace('', pd.NA)
 
